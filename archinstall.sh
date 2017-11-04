@@ -917,7 +917,7 @@ get_partition_label()
 ask_cfdisk()
 {
     if confirm "Hard Drive Setup" "[?] Create partitions with cfdisk (root and \
-boot, optional swap) [y/n]: "
+			boot, optional swap) [y/n]: "
     then
         clear
         zero_part
@@ -1019,7 +1019,7 @@ update_pacman()
 ask_mirror_arch()
 {
     declare mirrold="cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup"
-
+    #Todo 1023 [chyba] :: command not found
     if confirm "ArchLinux Mirrorlist Setup" \
         "[+] Worldwide mirror will be used\n\n[?] Look for the best server? [y/n]: "
     then
@@ -1267,6 +1267,32 @@ sleep_clear()
 {
     sleep $1
     clear
+
+    return $SUCCESS
+}
+
+# confirm user inputted yYnN
+confirm()
+{
+    header="${1}"
+    ask="${2}"
+
+    while true
+    do
+        title "${header}"
+        wprintf "${ask}"
+        read input
+        if [ "${input}" = "y" -o "${input}" = "Y" ]
+        then
+            return $TRUE
+        elif [ "${input}" = "n" -o "${input}" = "N" ]
+        then
+            return $FALSE
+        else
+            clear
+            continue
+        fi
+    done
 
     return $SUCCESS
 }
