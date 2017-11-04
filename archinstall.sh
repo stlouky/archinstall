@@ -1000,7 +1000,7 @@ get_partitions()
         "${BOOT_PART}" = "" -o \
         "${ROOT_PART}" = "" -o \
         "${BOOT_FS_TYPE}" = "" -o \
-        "${ROOT_FS_TYPE}" = "" \
+        "${ROOT_FS_TYPE}" = "" -o \
         "${HOME_FS_TYPE}" = "" ]
     do
         title "Hard Drive Setup"
@@ -1050,7 +1050,7 @@ get_partition_label()
 ask_cfdisk()
 {
     if confirm "Hard Drive Setup" "[?] Create partitions with cfdisk (root and \
-			boot, optional swap) [y/n]: "
+			boot, home, optional swap) [y/n]: "
     then
         clear
         zero_part
