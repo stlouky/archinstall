@@ -198,7 +198,7 @@ make_home_partition()
 
 	wprintf "[+] Creatirn HOME partition"
 	printf "\n\n"
-	mkfs.${HOME_PART} -F ${HOME_PART}
+	mkfs.${HOME_FS_TYPE} -F ${HOME_PART}
 }
 
 
@@ -1172,7 +1172,7 @@ update_pkg_database()
 ask_mirror_arch()
 {
     declare mirrold="cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup"
-    #Todo 1023 [chyba] :: command not found
+    
     if confirm "ArchLinux Mirrorlist Setup" \
         "[+] Worldwide mirror will be used\n\n[?] Look for the best server? [y/n]: "
     then
