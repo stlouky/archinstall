@@ -6,6 +6,12 @@ VERSION="v0.1a"
 # path to blackarch-installer
 BI_PATH="/usr/share/blackarch-installer"
 
+# sleepclear
+SLEEP=10
+
+# debug
+DEBUG_RUN=1
+
 # true / false
 TRUE=0
 FALSE=1
@@ -168,7 +174,7 @@ make_root_partition()
         else
             mkfs.${ROOT_FS_TYPE} -F ${ROOT_PART}
     fi
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     return $SUCCESS
 }
@@ -218,18 +224,18 @@ make_boot_partition()
 make_partitions()
 {
     make_boot_partition
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     make_root_partition
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     make_home_partition
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     if [ "${SWAP_PART}" != "none" ]
     then
         make_swap_partition
-        sleep_clear 1
+        sleep_clear ${SLEEP}
     fi
 
     return $SUCCESS
@@ -492,44 +498,44 @@ update_etc()
 setup_arch()
 {
     update_etc
-    sleep_clear 5
+    sleep_clear ${SLEEP}
 
     ask_mirror
-    sleep_clear 5
+    sleep_clear ${SLEEP}
 
     ask_x_setup
-    sleep_clear 5
+    sleep_clear ${SLEEP}
 
     if [ $X_SETUP -eq $TRUE ]
         then
             setup_display_manager
             sleep_clear 5
             setup_window_managers
-            sleep_clear 5    f 
+            sleep_clear ${SLEEP} 
 
         	update_etc
-        	sleep_clear 5
+        	sleep_clear ${SLEEP}
 
       	  	enable_pacman_multilib "chroot"
-       	 	sleep_clear 5
+       	 	sleep_clear ${SLEEP}
 
         	enable_pacman_color "chroot"
-        	sleep_clear 5
+        	sleep_clear ${SLEEP}
 
 	    	ask_vbox_setup
-        	sleep_clear 5
+        	sleep_clear ${SLEEP}
 
         	if [ $VBOX_SETUP -eq $TRUE ]
         	then
             	setup_vbox_utils
-            	sleep_clear 5
+            	sleep_clear ${SLEEP}
         	fi
     fi
 
     if [ -n "${NORMAL_USER}" ]
     then
         update_user_groups
-        sleep_clear 5
+        sleep_clear ${SLEEP}
     fi
 
     return $SUCCESS
@@ -923,18 +929,18 @@ mount_filesystems()
 make_partitions()
 {
     make_boot_partition
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     make_root_partition
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     make_home_partition
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     if [ "${SWAP_PART}" != "none" ]
     then
         make_swap_partition
-        sleep_clear 1
+        sleep_clear ${SLEEP}
     fi
 
     return $SUCCESS
@@ -1137,13 +1143,13 @@ enable_pacman_multilib()
 update_pacman()
 {
     enable_pacman_multilib
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     enable_pacman_color
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     update_pkg_database
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     return $SUCCESS
 }
@@ -1284,7 +1290,7 @@ set_keymap()
     # default keymap
     if [ -z "${KEYMAP}" ]
     then
-        KEYMAP="cz"
+        KEYMAP="cz-qwertz"
     fi
 
     localectl set-keymap --no-convert "${KEYMAP}"
@@ -1398,6 +1404,11 @@ err()
 # sleep and clear
 sleep_clear()
 {
+	if [ DEBUG_RUN ]
+		then 
+			read 
+	fi
+	
     sleep $1
     clear
 
