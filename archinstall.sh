@@ -149,6 +149,73 @@ WLAN_SSID=""
 WLAN_PASSPHRASE=""
 
 #####################################################################
+# make and format root partition
+make_root_partition()
+{
+    
+    title "Hard Drive Setup"
+    wprintf "[+] Creating ROOT partition"
+    printf "\n\n"
+    if [ "${ROOT_FS_TYPE}" = "btrfs" ]
+        then
+            mkfs.${ROOT_FS_TYPE} -f ${ROOT_PART}
+        else
+            mkfs.${ROOT_FS_TYPE} -F ${ROOT_PART}
+    fi
+    sleep_clear 1
+    
+    return $SUCCESS
+}
+
+
+# create swap partition
+make_swap_partition()
+{
+    title "Hard Drive Setup"
+
+    wprintf "[+] Creating SWAP partition"
+    printf "\n\n"
+    mkswap "${SWAP_PART}"
+
+    return $SUCCESS
+}
+
+
+# make and format boot partition
+make_boot_partition()
+{
+    title "Hard Drive Setup"
+
+    wprintf "[+] Creating BOOT partition"
+    printf "\n\n"
+    if [ "${PART_LABEL}" = "gpt" ]
+    then
+        mkfs.fat -F32 ${BOOT_PART}
+    else
+        mkfs.${BOOT_FS_TYPE} -F ${BOOT_PART}
+    fi
+
+    return $SUCCESS
+}
+
+
+# make and format partitions
+make_partitions()
+{
+    make_boot_partition
+    sleep_clear 1
+
+    make_root_partition
+    sleep_clear 1
+
+    if [ "${SWAP_PART}" != "none" ]
+    then
+        make_swap_partition
+        sleep_clear 1
+    fi
+
+    return $SUCCESS
+}
 
 # zero out partition if needed/chosen
 zero_part()
