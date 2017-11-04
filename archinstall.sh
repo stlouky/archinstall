@@ -492,44 +492,44 @@ update_etc()
 setup_arch()
 {
     update_etc
-    sleep_clear 1
+    sleep_clear 5
 
     ask_mirror
-    sleep_clear 1
+    sleep_clear 5
 
     ask_x_setup
-    sleep_clear 3
+    sleep_clear 5
 
     if [ $X_SETUP -eq $TRUE ]
         then
             setup_display_manager
-            sleep_clear 1
+            sleep_clear 5
             setup_window_managers
-            sleep_clear 1    f 
+            sleep_clear 5    f 
 
         	update_etc
-        	sleep_clear 1
+        	sleep_clear 5
 
       	  	enable_pacman_multilib "chroot"
-       	 	sleep_clear 1
+       	 	sleep_clear 5
 
         	enable_pacman_color "chroot"
-        	sleep_clear 1
+        	sleep_clear 5
 
 	    	ask_vbox_setup
-        	sleep_clear 1
+        	sleep_clear 5
 
         	if [ $VBOX_SETUP -eq $TRUE ]
         	then
             	setup_vbox_utils
-            	sleep_clear 1
+            	sleep_clear 5
         	fi
     fi
 
     if [ -n "${NORMAL_USER}" ]
     then
         update_user_groups
-        sleep_clear 1
+        sleep_clear 5
     fi
 
     return $SUCCESS
@@ -1516,9 +1516,9 @@ main()
         *)
             ;;
     esac
-    sleep_clear 1
+    sleep_clear 5
     check_inet_conn
-    sleep_clear 1
+    sleep_clear 5
 
     # pacman
     ask_mirror_arch
@@ -1529,9 +1529,9 @@ main()
     get_hd_devs
     ask_hd_dev
     umount_filesystems "harddrive"
-    sleep_clear 1
+    sleep_clear 5
     ask_cfdisk
-    sleep_clear 1
+    sleep_clear 5
     get_partition_label
     get_partitions
     print_partitions
@@ -1540,25 +1540,25 @@ main()
     make_partitions
     clear
     mount_filesystems
-    sleep_clear 1
+    sleep_clear 5
 
     # arch linux
     pass_mirror_conf
-    sleep_clear 1
+    sleep_clear 5
     setup_base_system
-    sleep_clear 1
+    sleep_clear 5
     setup_time
-    sleep_clear 1
+    sleep_clear 5
 
     # blackarch Linux
     setup_arch
-    sleep_clear 1
+    sleep_clear 5
 
     # epilog
     umount_filesystems
-    sleep_clear 1
+    sleep_clear 5
     sync_disk
-    sleep_clear 1
+    sleep_clear 5
     
     return $SUCCESS
 }
