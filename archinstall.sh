@@ -380,31 +380,30 @@ setup_arch()
     ask_x_setup
     sleep_clear 3
 
-     if [ $X_SETUP -eq $TRUE ]
+    if [ $X_SETUP -eq $TRUE ]
         then
             setup_display_manager
             sleep_clear 1
             setup_window_managers
-            sleep_clear 1
-        fi   
+            sleep_clear 1    f 
 
-        update_etc
-        sleep_clear 1
+        	update_etc
+        	sleep_clear 1
 
-        enable_pacman_multilib "chroot"
-        sleep_clear 1
+      	  	enable_pacman_multilib "chroot"
+       	 	sleep_clear 1
 
-        enable_pacman_color "chroot"
-        sleep_clear 1
+        	enable_pacman_color "chroot"
+        	sleep_clear 1
 
-	    ask_vbox_setup
-        sleep_clear 1
+	    	ask_vbox_setup
+        	sleep_clear 1
 
-        if [ $VBOX_SETUP -eq $TRUE ]
-        then
-            setup_vbox_utils
-            sleep_clear 1
-        fi
+        	if [ $VBOX_SETUP -eq $TRUE ]
+        	then
+            	setup_vbox_utils
+            	sleep_clear 1
+        	fi
     fi
 
     if [ -n "${NORMAL_USER}" ]
