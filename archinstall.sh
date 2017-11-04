@@ -150,6 +150,38 @@ WLAN_PASSPHRASE=""
 
 #####################################################################
 
+# zero out partition if needed/chosen
+zero_part()
+{
+    if confirm "Hard Drive Setup" "[?] Start with an in-memory zeroed \
+partition table [y/n]: "
+    then
+        cfdisk -z "${HD_DEV}"
+        sync
+    else
+        cfdisk "${HD_DEV}"
+        sync
+    fi
+
+    return $SUCCESS
+}
+
+# ask user to create partitions using cfdisk
+ask_cfdisk()
+{
+    if confirm "Hard Drive Setup" "[?] Create partitions with cfdisk (root and \
+boot, optional swap) [y/n]: "
+    then
+        clear
+        zero_part
+    else
+        echo
+        err "Are you kidding me? No partitions no fun!"
+    fi
+
+    return $SUCCESS
+}
+
 # ask user for VirtualBox modules+utils setup
 ask_vbox_setup()
 {
