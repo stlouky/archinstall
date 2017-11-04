@@ -7,7 +7,7 @@ VERSION="v0.1a"
 BI_PATH="/usr/share/blackarch-installer"
 
 # sleepclear
-SLEEP=10
+SLEEP=1
 
 # debug
 DEBUG_RUN=1
@@ -21,7 +21,7 @@ SUCCESS=0
 FAILURE=1
 
 # verbose mode - default: quiet
-VERBOSE="/dev/null"
+VERBOSE=""	#/dev/null
 
 # chosen keymap
 KEYMAP=""
@@ -1406,9 +1406,10 @@ sleep_clear()
 {
 	if [ DEBUG_RUN ]
 		then 
+			wprintf "debug stop"
 			read 
 	fi
-	
+
     sleep $1
     clear
 
@@ -1532,7 +1533,7 @@ main()
     sleep_clear 5
 
     # pacman
-    ask_mirror_arch
+    ask_mirror_arch		#####
     sleep_clear 5
     update_pacman
 
