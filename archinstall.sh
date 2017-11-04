@@ -1297,6 +1297,14 @@ confirm()
     return $SUCCESS
 }
 
+# print warning
+warn()
+{
+    printf "%s[!] WARNING: %s%s\n" "${YELLOW}" "${@}" "${NC}"
+
+    return $SUCCESS
+}
+
 # perform system base setup/configurations
 setup_base_system()
 {
