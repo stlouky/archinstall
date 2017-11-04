@@ -21,7 +21,7 @@ SUCCESS=0
 FAILURE=1
 
 # verbose mode - default: quiet
-VERBOSE=""	#/dev/null
+VERBOSE="/dev/null"
 
 # chosen keymap
 KEYMAP=""
@@ -727,7 +727,7 @@ setup_extra_packages()
     \n"
 
     sleep 2
-
+    sleep_clear ${SLEEP}			#debug
     chroot ${CHROOT} pacman -S --needed --force --noconfirm `echo ${all}`
 
     return $SUCCESS
