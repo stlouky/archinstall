@@ -1154,6 +1154,20 @@ update_pacman()
     return $SUCCESS
 }
 
+# update pacman package database
+update_pkg_database()
+{
+    title "Pacman Setup"
+
+    wprintf "[+] Updating pacman database"
+    printf "\n\n"
+
+    pacman -Syy --noconfirm
+
+    return $SUCCESS
+}
+
+
 # ask for archlinux server
 ask_mirror_arch()
 {
@@ -1454,44 +1468,44 @@ warn()
 setup_base_system()
 {
     setup_resolvconf
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     install_base_packages
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     setup_resolvconf
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     setup_fstab
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     setup_proc_sys_dev
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     setup_locale
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     setup_initramfs
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     setup_hostname
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     setup_user "root"
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     ask_user_account
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     if [ ! -z "${NORMAL_USER}" ]
     then
         setup_user "${NORMAL_USER}"
-        sleep_clear 1
+        sleep_clear ${SLEEP}
     fi
 
     setup_extra_packages
     setup_bootloader
-    sleep_clear 1
+    sleep_clear ${SLEEP}
 
     return $SUCCESS
 }
@@ -1528,22 +1542,22 @@ main()
         *)
             ;;
     esac
-    sleep_clear 5
+    sleep_clear ${SLEEP}
     check_inet_conn
-    sleep_clear 5
+    sleep_clear ${SLEEP}
 
     # pacman
     ask_mirror_arch		#####
-    sleep_clear 5
+    sleep_clear ${SLEEP}
     update_pacman
 
     # hard drive
     get_hd_devs
     ask_hd_dev
     umount_filesystems "harddrive"
-    sleep_clear 5
+    sleep_clear ${SLEEP}
     ask_cfdisk
-    sleep_clear 5
+    sleep_clear ${SLEEP}
     get_partition_label
     get_partitions
     print_partitions
@@ -1552,25 +1566,25 @@ main()
     make_partitions
     clear
     mount_filesystems
-    sleep_clear 5
+    sleep_clear ${SLEEP}
 
     # arch linux
     pass_mirror_conf
-    sleep_clear 5
+    sleep_clear ${SLEEP}
     setup_base_system
-    sleep_clear 5
+    sleep_clear ${SLEEP}
     setup_time
-    sleep_clear 5
+    sleep_clear ${SLEEP}
 
     # blackarch Linux
     setup_arch
-    sleep_clear 5
+    sleep_clear ${SLEEP}
 
     # epilog
     umount_filesystems
-    sleep_clear 5
+    sleep_clear ${SLEEP}
     sync_disk
-    sleep_clear 5
+    sleep_clear ${SLEEP}
     
     return $SUCCESS
 }
