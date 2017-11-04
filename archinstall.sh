@@ -4,7 +4,7 @@
 VERSION="v0.1a"
 
 # path to blackarch-installer
-#BI_PATH="/usr/share/blackarch-installer"
+BI_PATH="/usr/share/blackarch-installer"
 
 # true / false
 TRUE=0
@@ -107,6 +107,9 @@ BOOT_PART=""
 # root partition
 ROOT_PART=""
 
+# home partition
+HOME_PART=""
+
 # crypted root
 CRYPT_ROOT="r00t"
 
@@ -118,6 +121,9 @@ BOOT_FS_TYPE=""
 
 # root fs type - default: ext4
 ROOT_FS_TYPE=""
+
+# home fs type - default: ext4
+HOME_FS_TYPE=""
 
 # chroot directory / blackarch linux installation
 CHROOT="/mnt"
@@ -163,7 +169,7 @@ make_root_partition()
             mkfs.${ROOT_FS_TYPE} -F ${ROOT_PART}
     fi
     sleep_clear 1
-    
+
     return $SUCCESS
 }
 
@@ -178,6 +184,15 @@ make_swap_partition()
     mkswap "${SWAP_PART}"
 
     return $SUCCESS
+}
+
+make_home_partition()
+{
+	title "Hard Drive Setup"
+
+	wprintf "[+] Creatirn HOME partition"
+	printf "\n\n"
+	mkfs.${HOME_PART} -F ${HOME_PART}
 }
 
 
@@ -206,6 +221,9 @@ make_partitions()
     sleep_clear 1
 
     make_root_partition
+    sleep_clear 1
+
+    make_home_partition
     sleep_clear 1
 
     if [ "${SWAP_PART}" != "none" ]
@@ -375,7 +393,7 @@ setup_window_managers()
         echo
         case $choice in
             1)
-		chroot ${CHROOT} pacman -S i3-wm --needed --force --noconfirm
+				chroot ${CHROOT} pacman -S i3-wm --needed --force --noconfirm
                 break
                 ;;
                
@@ -384,13 +402,16 @@ setup_window_managers()
                 break
                 ;;
             3)
-                chroot ${CHROOT} pacman -S xfce4 xfce4-goodies --needed --force --noconfirm
+                chroot ${CHROOT} pacman -S xfce4 exo garcon gtk-xfce-engine thunar \
+                	 thunar-volman tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
+                	 xfce4-session xfce4-settings xfce4-terminal xfconf xfdesktop xfwm4 \
+                	 xfwm4-themes --needed --force --noconfirm
 			    break
 			    ;;
            
             *)
                 chroot ${CHROOT} pacman -S i3-wm xfce4 xfce4-googdies \
-                    dwm spectrwm --needed --force --noconfirm                
+                    dwm --needed --force --noconfirm                
 
                 break
                 ;;
@@ -398,7 +419,7 @@ setup_window_managers()
     done
 
     # wallpaper
-    cp -r ${BI_PATH}/data/usr/share/blackarch ${CHROOT}/usr/share/blackarch
+    #cp -r ${BI_PATH}/data/usr/share/blackarch ${CHROOT}/usr/share/blackarch
 
     # remove wrong xsession entries
     chroot ${CHROOT} rm "/usr/share/xsessions/openbox-kde.desktop" \
@@ -630,7 +651,7 @@ EOF
         chroot ${CHROOT} pacman -S grub --noconfirm --force --needed
         uuid="`lsblk -o UUID ${ROOT_PART} | sed -n 2p`"
 
-        cp ${BI_PATH}/data/boot/grub/splash.png ${CHROOT}/boot/grub/splash.png
+        #cp ${BI_PATH}/data/boot/grub/splash.png ${CHROOT}/boot/grub/splash.png
 
         #sed -i 's/quiet//g' "${CHROOT}/etc/default/grub"
         #sed -i 's/Arch/BlackArch/g' "${CHROOT}/etc/default/grub"
@@ -740,12 +761,12 @@ setup_user()
     fi
 
     # environment
-    if [ -z ${NORMAL_USER} ]
-    then
-        cp -r ${BI_PATH}/data/root/. "${CHROOT}/root/." > ${VERBOSE} 2>&1
-    else
-        cp -r ${BI_PATH}/data/user/. "${CHROOT}/home/${user}/." > ${VERBOSE} 2>&1
-    fi
+#    if [ -z ${NORMAL_USER} ]
+#   then
+#        cp -r ${BI_PATH}/data/root/. "${CHROOT}/root/." > ${VERBOSE} 2>&1
+#    else
+#        cp -r ${BI_PATH}/data/user/. "${CHROOT}/home/${user}/." > ${VERBOSE} 2>&1
+#    fi
 
     # password
     wprintf "[?] Set password for ${user}: "
@@ -888,6 +909,10 @@ mount_filesystems()
     mkdir ${CHROOT}/boot > /dev/null 2>&1
     mount ${BOOT_PART} "${CHROOT}/boot" > /dev/null 2>&1
 
+    # HOME
+    mkdir ${CHROOT}/home > /dev/null 2>&1
+    mount ${HOME_PART} "${CHROOT}/home" > /dev/null 2>&1
+
     # SWAP
     swapon "${SWAP_PART}" > /dev/null 2>&1
 
@@ -901,6 +926,9 @@ make_partitions()
     sleep_clear 1
 
     make_root_partition
+    sleep_clear 1
+
+    make_home_partition
     sleep_clear 1
 
     if [ "${SWAP_PART}" != "none" ]
@@ -940,6 +968,7 @@ print_partitions()
         printf "\n
     > /boot     : ${BOOT_PART} (${BOOT_FS_TYPE})
     > /         : ${ROOT_PART} (${ROOT_FS_TYPE})
+    > /home 	: ${HOME_PART} (${HOME_FS_TYPE})
     > swap      : ${SWAP_PART} (swap)
     \n"
         wprintf "[?] Partition table correct [y/n]: "
@@ -971,7 +1000,8 @@ get_partitions()
         "${BOOT_PART}" = "" -o \
         "${ROOT_PART}" = "" -o \
         "${BOOT_FS_TYPE}" = "" -o \
-        "${ROOT_FS_TYPE}" = "" ]
+        "${ROOT_FS_TYPE}" = "" \
+        "${HOME_FS_TYPE}" = "" ]
     do
         title "Hard Drive Setup"
         wprintf "[+] Created partitions:"
@@ -991,6 +1021,10 @@ get_partitions()
         read ROOT_PART
         wprintf "[?] Root FS type (ext2, ext3, ext4, btrfs): "
         read ROOT_FS_TYPE
+        wprintf "[?] Home partition (dev/sdXY)"
+        read HOME_PART
+        wprintf "[?] Home FS type (ext2, ext3, ext4, btrfs): "
+        read HOME_FS_TYPE
         wprintf "[?] Swap parition (/dev/sdXY - empty for none): "
         read SWAP_PART
 
