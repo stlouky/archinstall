@@ -276,7 +276,7 @@ setup_window_managers()
         echo
         case $choice in
             1)
-				chroot ${CHROOT} pacman -S i3-wm --needed --force --noconfirm
+		chroot ${CHROOT} pacman -S i3-wm --needed --force --noconfirm
                 break
                 ;;
                
@@ -285,15 +285,7 @@ setup_window_managers()
                 break
                 ;;
             3)
-                chroot ${CHROOT} pacman -S fluxbox --needed --force --noconfirm
-                cp -r ${BI_PATH}/data/usr/share/fluxbox/. \
-                    ${CHROOT}/usr/share/fluxbox/.
-                break
-                ;;
-            4)
-                
-            5)
-			    chroot ${CHROOT} pacman -S xfce4 xfce4-goodies --needed --force --noconfirm
+                chroot ${CHROOT} pacman -S xfce4 xfce4-goodies --needed --force --noconfirm
 			    break
 			    ;;
            
