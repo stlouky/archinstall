@@ -116,9 +116,6 @@ ROOT_PART=""
 # home partition
 HOME_PART=""
 
-# crypted root
-CRYPT_ROOT="r00t"
-
 # swap partition
 SWAP_PART=""
 
@@ -871,7 +868,7 @@ setup_fstab()
 # install ArchLinux base and base-devel packages
 install_base_packages()
 {
-    title "Base System Setup"
+    title "Base System setup"
 
     wprintf "[+] Installing ArchLinux base packages"
     printf "\n\n"
@@ -879,7 +876,7 @@ install_base_packages()
     pacstrap ${CHROOT} base base-devel
     chroot ${CHROOT} pacman -Syy --force
 
-    return $SUCCESS
+    return $SUCCES
 }
 
 # setup /etc/resolv.conf
@@ -1552,7 +1549,7 @@ main()
     sleep_clear ${SLEEP}
 
     # pacman
-    ask_mirror_arch		#####
+    ask_mirror_arch		
     sleep_clear ${SLEEP}
     update_pacman
 
@@ -1570,7 +1567,7 @@ main()
     clear
     make_partitions
     clear
-    mount_filesystems
+    mount_filesystems		#####
     sleep_clear ${SLEEP}
 
     # arch linux
