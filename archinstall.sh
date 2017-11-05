@@ -1,13 +1,10 @@
 #!/bin/bash
 
 # blackarch-installer version
-VERSION="v0.1a"
+VERSION="v0.1b"
 
 # sleepclear
 SLEEP=1
-
-# debug
-DEBUG_RUN=0
 
 # true / false
 TRUE=0
@@ -439,7 +436,7 @@ setup_display_manager()
     chroot ${CHROOT} pacman -S lightdm --needed --force --noconfirm
 
     # config files
-    
+
     # enable in systemd
     chroot ${CHROOT} systemctl enable lightdm
 
@@ -1355,13 +1352,7 @@ err()
 # sleep and clear
 sleep_clear()
 {
-	if [ DEBUG_RUN ]
-		then 
-			wprintf "debug stop"
-			read 
-	fi
-
-    sleep $1
+	sleep $1
     clear
 
     return $SUCCESS
