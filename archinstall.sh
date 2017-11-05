@@ -193,7 +193,7 @@ make_home_partition()
 {
 	title "Hard Drive Setup"
 
-	wprintf "[+] Creatirn HOME partition"
+	wprintf "[+] Creating HOME partition"
 	printf "\n\n"
 	mkfs.${HOME_FS_TYPE} -F ${HOME_PART}
 }
@@ -314,7 +314,7 @@ update_user_groups()
 
     # TODO: more to add here
     chroot ${CHROOT} \
-        usermod -G ${NORMAL_USER},video,audio,vboxsf,wireshark,stunnel
+        usermod -G ${NORMAL_USER},video,audio,vboxsf
 
     return $SUCCESS
 }
@@ -413,10 +413,7 @@ setup_window_managers()
 			    ;;
            
             *)
-                pacman -S i3 xfce4 xfce4-googdies \
-                    dwm --needed --force --noconfirm   
-                    #chroot ${CHROOT} pacman -S            
-
+                chroot ${CHROOT} pacman -S i3 xfce4 dwm --needed --force --noconfirm
                 break
                 ;;
         esac
@@ -424,13 +421,6 @@ setup_window_managers()
 
     # wallpaper
     #cp -r ${BI_PATH}/data/usr/share/blackarch ${CHROOT}/usr/share/blackarch
-
-    # remove wrong xsession entries
-    chroot ${CHROOT} rm "/usr/share/xsessions/openbox-kde.desktop" \
-        > ${VERBOSE} 2>&1
-    chroot ${CHROOT} rm "/usr/share/xsessions/i3-with-shmlog.desktop" \
-        > ${VERBOSE} 2>&1
-
     sleep 30
 
     return $SUCCESS
@@ -451,16 +441,11 @@ setup_display_manager()
     sleep 2
 
     # install lxdm packages
-    chroot ${CHROOT} pacman -S lxdm --needed --force --noconfirm
+    chroot ${CHROOT} pacman -S lightdm --needed --force --noconfirm
 
     # config files
-    cp -r ${BI_PATH}/data/etc/lxdm/. ${CHROOT}/etc/lxdm/.
-    cp -r ${BI_PATH}/data/usr/share/lxdm/. ${CHROOT}/usr/share/lxdm/.
-    cp -r ${BI_PATH}/data/usr/share/xsessions/. ${CHROOT}/usr/share/xsessions/
-    cp -r ${BI_PATH}/data/usr/share/gtk-2.0/. ${CHROOT}/usr/share/gtk-2.0/.
-
     # enable in systemd
-    chroot ${CHROOT} systemctl enable lxdm
+    chroot ${CHROOT} systemctl enable lightdm
 
     return $SUCCESS
 }
@@ -512,8 +497,8 @@ setup_arch()
             setup_window_managers
             sleep_clear ${SLEEP} 
 
-        	update_etc
-        	sleep_clear ${SLEEP}
+        	#update_etc
+        	#sleep_clear ${SLEEP}
 
       	  	enable_pacman_multilib "chroot"
        	 	sleep_clear ${SLEEP}
@@ -656,15 +641,7 @@ EOF
         chroot ${CHROOT} pacman -S grub --noconfirm --force --needed
         uuid="`lsblk -o UUID ${ROOT_PART} | sed -n 2p`"
 
-        #cp ${BI_PATH}/data/boot/grub/splash.png ${CHROOT}/boot/grub/splash.png
-
-        #sed -i 's/quiet//g' "${CHROOT}/etc/default/grub"
-        #sed -i 's/Arch/BlackArch/g' "${CHROOT}/etc/default/grub"
-        #echo "GRUB_BACKGROUND=\"/boot/grub/splash.png\"" >> \
-        #    "${CHROOT}/etc/default/grub"
         chroot ${CHROOT} grub-install --target=i386-pc "${HD_DEV}"
-        chroot ${CHROOT} grub-mkconfig -o /boot/grub/grub.cfg
-        #sed -i 's/Arch Linux/BlackArch Linux/g' "${CHROOT}/boot/grub/grub.cfg"
         chroot ${CHROOT} grub-mkconfig -o /boot/grub/grub.cfg
     fi
 
@@ -674,39 +651,32 @@ EOF
 # install extra (missing) packages
 setup_extra_packages()
 {
-    arch="arch-install-scripts archlinux-keyring pkgfile"
-
-    #bluetooth="bluez bluez-firmware bluez-hid2hci bluez-utils"
+    arch="archlinux-keyring pkgfile"	#arch-install-scripts 
 
     browser="firefox midori elinks"
 
     editor="vim"
 
-    filesystem="btrfs-progs cryptsetup device-mapper dmraid dosfstools
-    gptfdisk nilfs-utils ntfs-3g partclone parted partimage"
+    multimedia="exfat-utils fuse-exfat a52dec faac faad2 flac jasper lame
+    libdca libdv gst-libav libmad libmpeg2 libtheora libvorbis libxv wavpack
+    x264 xvidcore gstreamer0.10-plugins numix-themes vlc"
 
     fonts="ttf-liberation ttf-dejavu ttf-freefont xorg-font-utils
-    xorg-fonts-alias xorg-fonts-misc xorg-mkfontscale xorg-mkfontdir
-    ttf-indic-otf"
+    xorg-fonts-alias xorg-fonts-misc xorg-mkfontscale xorg-mkfontdir"
 
     kernel="linux-api-headers linux-headers"
 
-    misc="acpi alsa-utils b43-fwcutter bash-completion bc btrfs-progs cmake
-    ctags expac feh flashplugin git gpm grml-zsh-config haveged hdparm htop
-    inotify-tools ipython irssi linux-atm lsof mercurial mesa mlocate moreutils
-    mpv mtools mupdf p7zip rsync rtorrent scrot smartmontools speedtouch strace
-    sudo tzdata unace unrar unzip usb_modeswitch zip zsh"
+    misc="acpi alsa-utils bash-completion cmake feh flashplugin git
+    hdparm htop mesa p7zip rsync sudo unace unrar unzip zip"
 
-    network="wicd-gtk wicd bridge-utils darkhttpd atftp bind-tools dnsmasq
-    dhclient dnsutils gnu-netcat ipw2100-fw ipw2200-fw lftp nfs-utils ntp
-    openconnect openssh openvpn ppp pptpclient rfkill rp-pppoe vpnc dialog iw
-    wireless_tools wpa_actiond wvdial xl2tpd zd1211-firmware wpa_supplicant"
+    network="wicd-gtk wicd dhclient dnsutils openssh dialog iw wireless_tools
+    wpa_supplicant"
 
     xorg="xf86-video-ati xf86-video-dummy xf86-video-fbdev xf86-video-intel
     xf86-video-nouveau xf86-video-openchrome xf86-video-sisusb xf86-video-vesa
     xf86-video-voodoo xorg-server xorg-xinit xterm"
 
-    all="${arch} ${browser} ${editor} ${filesystem} ${fonts}"
+    all="${arch} ${browser} ${editor} ${filesystem} ${fonts} ${multimedia}"
     all="${all} ${kernel} ${misc} ${network} ${xorg}"
 
     title "Base System Setup"
@@ -727,8 +697,8 @@ setup_extra_packages()
 
     sleep 2
     sleep_clear ${SLEEP}			#debug
-    #hroot ${CHROOT} pacman -S --needed --force --noconfirm `echo ${all}`
-    pacman -S --needed --force --noconfirm `echo ${all}`
+    chroot ${CHROOT} pacman -S `echo ${all}`--needed --force --noconfirm
+    #acman -S --needed --force --noconfirm `echo ${all}`
 
     return $SUCCESS
 }
@@ -822,8 +792,10 @@ setup_locale()
     printf "\n\n"
 
     sed -i 's/^#cs_CZ.UTF-8/cs_CZ.UTF-8/' "${CHROOT}/etc/locale.gen"
+    sed -i 's/^#cs_CZ ISO-8859-2/cs_CZ ISO-8859-2/' "${CHROOT}/etc/locale.gen"
     chroot ${CHROOT} locale-gen
-    echo "KEYMAP=${KEYMAP}" > "${CHROOT}/etc/vconsole.conf"
+    echo "KEYMAP=cz-qwertz> "${CHROOT}/etc/vconsole.conf"
+    localectl set-locale LANG=cs_CZ.UTF-8
 
     return $SUCCESS
 }
@@ -1027,7 +999,7 @@ get_partitions()
         read ROOT_PART
         wprintf "[?] Root FS type (ext2, ext3, ext4, btrfs): "
         read ROOT_FS_TYPE
-        wprintf "[?] Home partition (dev/sdXY)"
+        wprintf "[?] Home partition (dev/sdXY): "
         read HOME_PART
         wprintf "[?] Home FS type (ext2, ext3, ext4, btrfs): "
         read HOME_FS_TYPE
@@ -1472,7 +1444,7 @@ setup_base_system()
     setup_resolvconf
     sleep_clear ${SLEEP}
 
-    install_base_packages
+    install_base_packages		
     sleep_clear ${SLEEP}
 
     setup_resolvconf
@@ -1505,7 +1477,7 @@ setup_base_system()
         sleep_clear ${SLEEP}
     fi
 
-    setup_extra_packages
+    setup_extra_packages	####
     setup_bootloader
     sleep_clear ${SLEEP}
 
