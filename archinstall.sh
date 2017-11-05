@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# blackarch-installer version
-VERSION="v0.1b"
+# arch-installer version
+VERSION="v0.4b"
 
 # sleepclear
 SLEEP=1
@@ -427,18 +427,18 @@ setup_display_manager()
     printf "\n"
 
     printf "
-    > lightdm
+    > lxdm
     \n"
 
     sleep 2
 
     # install lxdm packages
-    chroot ${CHROOT} pacman -S lightdm --needed --force --noconfirm
+    chroot ${CHROOT} pacman -S lxdm --needed --force --noconfirm
 
     # config files
 
     # enable in systemd
-    chroot ${CHROOT} systemctl enable lightdm
+    chroot ${CHROOT} systemctl enable lxdm.service
 
     return $SUCCESS
 }
@@ -626,9 +626,7 @@ setup_extra_packages()
 
     editor="vim"
 
-    multimedia="a52dec faac faad2 flac jasper lame libdca libdv 
-    gst-libav libmad libmpeg2 libtheora libvorbis libxv wavpack
-    x264 xvidcores vlc"
+    multimedia="ffmpeg vlc"
 
     fonts="ttf-liberation ttf-dejavu ttf-freefont xorg-font-utils
     xorg-fonts-alias xorg-fonts-misc xorg-mkfontscale xorg-mkfontdir"
