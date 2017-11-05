@@ -3,14 +3,11 @@
 # blackarch-installer version
 VERSION="v0.1a"
 
-# path to blackarch-installer
-BI_PATH="/usr/share/blackarch-installer"
-
 # sleepclear
 SLEEP=1
 
 # debug
-DEBUG_RUN=1
+DEBUG_RUN=0
 
 # true / false
 TRUE=0
@@ -158,6 +155,7 @@ WLAN_SSID=""
 WLAN_PASSPHRASE=""
 
 #####################################################################
+
 # make and format root partition
 make_root_partition()
 {
@@ -418,9 +416,6 @@ setup_window_managers()
                 ;;
         esac
     done
-
-    # wallpaper
-    #cp -r ${BI_PATH}/data/usr/share/blackarch ${CHROOT}/usr/share/blackarch
     sleep 30
 
     return $SUCCESS
@@ -435,7 +430,7 @@ setup_display_manager()
     printf "\n"
 
     printf "
-    > Lxdm
+    > lightdm
     \n"
 
     sleep 2
@@ -444,6 +439,7 @@ setup_display_manager()
     chroot ${CHROOT} pacman -S lightdm --needed --force --noconfirm
 
     # config files
+    
     # enable in systemd
     chroot ${CHROOT} systemctl enable lightdm
 
@@ -457,22 +453,7 @@ ask_x_setup()
     then
         X_SETUP=$TRUE
         printf "\n"
-        #rintf "${BLINK}NOOB! NOOB! NOOB! NOOB! NOOB! NOOB! NOOB!${NC}\n\n"
     fi
-
-    return $SUCCESS
-}
-
-# update /etc files
-update_etc()
-{
-    title "Arch Linux Setup"
-
-    wprintf "[+] Updating /etc files"
-    printf "\n\n"
-
-    # /etc/*
-    cp -r ${BI_PATH}/data/etc/. ${CHROOT}/etc/. > ${VERBOSE} 2>&1
 
     return $SUCCESS
 }
@@ -480,12 +461,6 @@ update_etc()
  #setup arch related stuff
 setup_arch()
 {
-    #pdate_etc
-    #leep_clear ${SLEEP}
-
-   #ask_mirror_arch
-   #sleep_clear ${SLEEP}
-
     ask_x_setup
     sleep_clear ${SLEEP}
 
@@ -496,9 +471,6 @@ setup_arch()
 
             setup_window_managers
             sleep_clear ${SLEEP} 
-
-        	#update_etc
-        	#sleep_clear ${SLEEP}
 
       	  	enable_pacman_multilib "chroot"
        	 	sleep_clear ${SLEEP}
@@ -653,28 +625,26 @@ setup_extra_packages()
 {
     arch="archlinux-keyring pkgfile"	#arch-install-scripts 
 
-    browser="firefox midori elinks"
+    browser="firefox midori elinks firefox-i18n-cs"
 
     editor="vim"
 
-    multimedia="exfat-utils fuse-exfat a52dec faac faad2 flac jasper lame
-    libdca libdv gst-libav libmad libmpeg2 libtheora libvorbis libxv wavpack
-    x264 xvidcore gstreamer0.10-plugins numix-themes vlc"
+    multimedia="a52dec faac faad2 flac jasper lame libdca libdv 
+    gst-libav libmad libmpeg2 libtheora libvorbis libxv wavpack
+    x264 xvidcores vlc"
 
     fonts="ttf-liberation ttf-dejavu ttf-freefont xorg-font-utils
     xorg-fonts-alias xorg-fonts-misc xorg-mkfontscale xorg-mkfontdir"
 
-    kernel="linux-api-headers linux-headers"
+    kernel="linux-headers"
 
-    misc="acpi alsa-utils bash-completion cmake feh flashplugin git
+    misc="alsa-utils bash-completion cmake feh flashplugin git
     hdparm htop mesa p7zip rsync sudo unace unrar unzip zip"
 
-    network="wicd-gtk wicd dhclient dnsutils openssh dialog iw wireless_tools
-    wpa_supplicant"
+    network="networkmanager network-manager-applet dhclient dnsutils 
+    openssh dialog iw wireless_tools wpa_supplicant"
 
-    xorg="xf86-video-ati xf86-video-dummy xf86-video-fbdev xf86-video-intel
-    xf86-video-nouveau xf86-video-openchrome xf86-video-sisusb xf86-video-vesa
-    xf86-video-voodoo xorg-server xorg-xinit xterm"
+    xorg="xorg-server xorg-xinit xterm"
 
     all="${arch} ${browser} ${editor} ${filesystem} ${fonts} ${multimedia}"
     all="${all} ${kernel} ${misc} ${network} ${xorg}"
@@ -696,9 +666,9 @@ setup_extra_packages()
     \n"
 
     sleep 2
-    sleep_clear ${SLEEP}			#debug
+    sleep_clear ${SLEEP}			
     chroot ${CHROOT} pacman -S `echo ${all}`--needed --force --noconfirm
-    #acman -S --needed --force --noconfirm `echo ${all}`
+    
 
     return $SUCCESS
 }
@@ -735,14 +705,6 @@ setup_user()
         wprintf "[+] Added user: ${user}"
         printf "\n\n"
     fi
-
-    # environment
-#    if [ -z ${NORMAL_USER} ]
-#   then
-#        cp -r ${BI_PATH}/data/root/. "${CHROOT}/root/." > ${VERBOSE} 2>&1
-#    else
-#        cp -r ${BI_PATH}/data/user/. "${CHROOT}/home/${user}/." > ${VERBOSE} 2>&1
-#    fi
 
     # password
     wprintf "[?] Set password for ${user}: "
@@ -794,8 +756,9 @@ setup_locale()
     sed -i 's/^#cs_CZ.UTF-8/cs_CZ.UTF-8/' "${CHROOT}/etc/locale.gen"
     sed -i 's/^#cs_CZ ISO-8859-2/cs_CZ ISO-8859-2/' "${CHROOT}/etc/locale.gen"
     chroot ${CHROOT} locale-gen
-    echo "KEYMAP=cz-qwertz> "${CHROOT}/etc/vconsole.conf"
+    echo "KEYMAP=cz-qwertz">"${CHROOT}/etc/vconsole.conf"
     localectl set-locale LANG=cs_CZ.UTF-8
+
 
     return $SUCCESS
 }
@@ -1539,7 +1502,7 @@ main()
     clear
     make_partitions
     clear
-    mount_filesystems		#####
+    mount_filesystems		
     sleep_clear ${SLEEP}
 
     # arch linux
@@ -1550,7 +1513,7 @@ main()
     setup_time
     sleep_clear ${SLEEP}
 
-    # blackarch Linux
+    # setup arch linux
     setup_arch
     sleep_clear ${SLEEP}
 
