@@ -664,7 +664,7 @@ setup_extra_packages()
 
     sleep 2
     sleep_clear ${SLEEP}			
-    chroot ${CHROOT} pacman -S `echo ${all}`--needed --force --noconfirm
+    chroot ${CHROOT} pacman -S `echo ${all}` --needed --force --noconfirm
     
 
     return $SUCCESS
