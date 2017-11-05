@@ -399,7 +399,7 @@ setup_window_managers()
         echo
         case $choice in
             1)
-				chroot ${CHROOT} pacman -S i3-wm --needed --force --noconfirm
+				chroot ${CHROOT} pacman -S i3 --needed --force --noconfirm
                 break
                 ;;
                
@@ -416,8 +416,9 @@ setup_window_managers()
 			    ;;
            
             *)
-                chroot ${CHROOT} pacman -S i3-wm xfce4 xfce4-googdies \
-                    dwm --needed --force --noconfirm                
+                pacman -S i3 xfce4 xfce4-googdies \
+                    dwm --needed --force --noconfirm   
+                    #chroot ${CHROOT} pacman -S            
 
                 break
                 ;;
@@ -474,7 +475,7 @@ ask_x_setup()
     then
         X_SETUP=$TRUE
         printf "\n"
-        printf "${BLINK}NOOB! NOOB! NOOB! NOOB! NOOB! NOOB! NOOB!${NC}\n\n"
+        #rintf "${BLINK}NOOB! NOOB! NOOB! NOOB! NOOB! NOOB! NOOB!${NC}\n\n"
     fi
 
     return $SUCCESS
@@ -497,11 +498,11 @@ update_etc()
  #setup arch related stuff
 setup_arch()
 {
-    update_etc
-    sleep_clear ${SLEEP}
+    #pdate_etc
+    #leep_clear ${SLEEP}
 
-    ask_mirror
-    sleep_clear ${SLEEP}
+   #ask_mirror_arch
+   #sleep_clear ${SLEEP}
 
     ask_x_setup
     sleep_clear ${SLEEP}
@@ -509,7 +510,8 @@ setup_arch()
     if [ $X_SETUP -eq $TRUE ]
         then
             setup_display_manager
-            sleep_clear 5
+            sleep_clear ${SLEEP}
+
             setup_window_managers
             sleep_clear ${SLEEP} 
 
@@ -728,7 +730,8 @@ setup_extra_packages()
 
     sleep 2
     sleep_clear ${SLEEP}			#debug
-    chroot ${CHROOT} pacman -S --needed --force --noconfirm `echo ${all}`
+    #hroot ${CHROOT} pacman -S --needed --force --noconfirm `echo ${all}`
+    pacman -S --needed --force --noconfirm `echo ${all}`
 
     return $SUCCESS
 }
@@ -1196,6 +1199,8 @@ ask_mirror_arch()
     fi
 
 }
+
+
 
 # check for internet connection
 check_inet_conn()
