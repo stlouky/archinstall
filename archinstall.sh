@@ -171,7 +171,6 @@ make_root_partition()
     return $SUCCESS
 }
 
-
 # create swap partition
 make_swap_partition()
 {
@@ -193,7 +192,6 @@ make_home_partition()
 	mkfs.${HOME_FS_TYPE} -F ${HOME_PART}
 }
 
-
 # make and format boot partition
 make_boot_partition()
 {
@@ -210,7 +208,6 @@ make_boot_partition()
 
     return $SUCCESS
 }
-
 
 # make and format partitions
 make_partitions()
@@ -297,7 +294,6 @@ setup_vbox_utils()
 
     return $SUCCESS
 }
-
 
 # add user to newly created groups
 update_user_groups()
@@ -408,7 +404,10 @@ setup_window_managers()
 			    ;;
            
             *)
-                chroot ${CHROOT} pacman -S i3 xfce4 dwm --needed --force --noconfirm
+                chroot ${CHROOT} pacman -S i3 xfce4 dwm exo garcon gtk-xfce-engine thunar
+                     thunar-volman tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
+                     xfce4-session xfce4-settings xfce4-terminal xfconf xfdesktop xfwm4 \
+                     xfwm4-themes dmenu --needed --force --noconfirm
                 break
                 ;;
         esac
@@ -423,22 +422,22 @@ setup_display_manager()
 {
     title "Arch Linux Setup"
 
-    wprintf "[+] Setting up LXDM"
+    wprintf "[+] Setting up GDM"
     printf "\n"
 
     printf "
-    > lxdm
+    > GDM
     \n"
 
     sleep 2
 
     # install lxdm packages
-    chroot ${CHROOT} pacman -S lxdm --needed --force --noconfirm
+    chroot ${CHROOT} pacman -S gdm --needed --force --noconfirm
 
     # config files
 
     # enable in systemd
-    chroot ${CHROOT} systemctl enable lxdm.service
+    chroot ${CHROOT} systemctl enable gdm.service
 
     return $SUCCESS
 }
@@ -493,7 +492,6 @@ setup_arch()
 
     return $SUCCESS
 }
-
 
 # perform sync
 sync_disk()
@@ -578,10 +576,8 @@ setup_time()
     fi
 
     printf "\n\n"
-
     return $SUCCESS
 }
-
 
 # setup boot loader for UEFI/GPT or BIOS/MBR
 setup_bootloader()
@@ -662,8 +658,7 @@ setup_extra_packages()
 
     sleep 2
     sleep_clear ${SLEEP}			
-    chroot ${CHROOT} pacman -S `echo ${all}` --needed --force --noconfirm
-    
+    chroot ${CHROOT} pacman -S `echo ${all}` --needed --force --noconfirm    
 
     return $SUCCESS
 }
@@ -753,7 +748,6 @@ setup_locale()
     chroot ${CHROOT} locale-gen
     echo "KEYMAP=cz-qwertz">"${CHROOT}/etc/vconsole.conf"
     localectl set-locale LANG=cs_CZ.UTF-8
-
 
     return $SUCCESS
 }
@@ -891,7 +885,6 @@ ask_formatting()
     return $SUCCESS
 }
 
-
 # print partitions and ask for confirmation
 print_partitions()
 {
@@ -985,7 +978,7 @@ get_partition_label()
 # ask user to create partitions using cfdisk
 ask_cfdisk()
 {
-    if confirm "Hard Drive Setup" "[?] Create partitions with cfdisk (root and \
+    if confirm "Hard Drive Setup" "[?] Create partitions with cfdisk (root \
 			boot, home, optional swap) [y/n]: "
     then
         clear
@@ -1023,7 +1016,6 @@ ask_hd_dev()
         fi
         clear
     done
-
 
     return $SUCCESS
 }
@@ -1097,7 +1089,6 @@ update_pkg_database()
     return $SUCCESS
 }
 
-
 # ask for archlinux server
 ask_mirror_arch()
 {
@@ -1124,10 +1115,7 @@ ask_mirror_arch()
 	        echo "Server = ${wore}" >> /etc/pacman.d/mirrorlist
 	    done
     fi
-
 }
-
-
 
 # check for internet connection
 check_inet_conn()
@@ -1174,7 +1162,6 @@ ask_net_conf_mode()
         read NET_CONF_MODE
         clear
     done
-
     return $SUCCESS
 }
 
@@ -1200,7 +1187,6 @@ ask_net_if()
         fi
         clear
     done
-
     return $SUCCESS
 }
 
@@ -1222,7 +1208,6 @@ ask_hostname()
         read HOST_NAME
         clear
     done
-
     return $SUCCESS
 }
 
@@ -1239,7 +1224,7 @@ set_keymap()
         KEYMAP="cz-qwertz"
     fi
 
-    localectl set-keymap --no-convert "${KEYMAP}"
+    localectl set-keymap --no-convert "cs_CZ.UTF-8"
     loadkeys "${KEYMAP}"
 
     return $SUCCESS
@@ -1270,12 +1255,9 @@ ask_keymap()
         fi
         clear
     done
-
     clear
-
     return $SUCCESS
 }
-
 
 #check user id
 check_uid()
@@ -1337,7 +1319,6 @@ banner()
     return $SUCCESS
 }
 
-
 # print error and exit
 err()
 {
@@ -1378,7 +1359,6 @@ confirm()
             continue
         fi
     done
-
     return $SUCCESS
 }
 
@@ -1506,7 +1486,7 @@ main()
     setup_arch
     sleep_clear ${SLEEP}
 
-    # epilog
+    # epilog     
     umount_filesystems
     sleep_clear ${SLEEP}
     sync_disk
@@ -1519,3 +1499,7 @@ main()
 main "${@}"
 
 # EOF
+# dhcpcd neběží po startu
+# konzole v us locale
+# display manager ?? GDM => test
+# locale nastaveno na us
