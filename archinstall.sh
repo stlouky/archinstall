@@ -397,7 +397,7 @@ setup_window_managers()
                 ;;
             3)
                 chroot ${CHROOT} pacman -S xfce4 exo garcon gtk-xfce-engine thunar \
-                	 thunar-volman tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
+                	 tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
                 	 xfce4-session xfce4-settings xfce4-terminal xfconf xfdesktop xfwm4 \
                 	 xfwm4-themes --needed --force --noconfirm
 			    break
@@ -405,7 +405,7 @@ setup_window_managers()
            
             *)
                 chroot ${CHROOT} pacman -S i3 xfce4 dwm exo garcon gtk-xfce-engine thunar
-                     thunar-volman tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
+                     tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
                      xfce4-session xfce4-settings xfce4-terminal xfconf xfdesktop xfwm4 \
                      xfwm4-themes dmenu --needed --force --noconfirm
                 break
@@ -422,22 +422,22 @@ setup_display_manager()
 {
     title "Arch Linux Setup"
 
-    wprintf "[+] Setting up GDM"
+    wprintf "[+] Setting up Slim"
     printf "\n"
 
     printf "
-    > GDM
+    > slim
     \n"
 
     sleep 2
 
     # install lxdm packages
-    chroot ${CHROOT} pacman -S gdm --needed --force --noconfirm
+    chroot ${CHROOT} pacman -S slim archlinux-themes-slim slim-themes --needed --force --noconfirm
 
     # config files
 
     # enable in systemd
-    chroot ${CHROOT} systemctl enable gdm.service
+    chroot ${CHROOT} systemctl enable slim.service
 
     return $SUCCESS
 }
