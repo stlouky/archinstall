@@ -422,22 +422,22 @@ setup_display_manager()
 {
     title "Arch Linux Setup"
 
-    wprintf "[+] Setting up Slim"
+    wprintf "[+] Setting up lightdm"
     printf "\n"
 
     printf "
-    > slim
+    > lightdm
     \n"
 
     sleep 2
 
     # install lxdm packages
-    chroot ${CHROOT} pacman -S slim archlinux-themes-slim slim-themes --needed --force --noconfirm
+    chroot ${CHROOT} pacman -S lightdm --needed --force --noconfirm
 
     # config files
 
     # enable in systemd
-    chroot ${CHROOT} systemctl enable slim.service
+    chroot ${CHROOT} systemctl enable lightdm.service
 
     return $SUCCESS
 }
@@ -622,7 +622,7 @@ setup_extra_packages()
 
     editor="vim"
 
-    multimedia="ffmpeg vlc"
+    multimedia="ffmpeg vlc qt4"
 
     fonts="ttf-liberation ttf-dejavu ttf-freefont xorg-font-utils
     xorg-fonts-alias xorg-fonts-misc xorg-mkfontscale xorg-mkfontdir"
