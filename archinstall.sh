@@ -462,11 +462,11 @@ setup_arch()
 
     if [ $X_SETUP -eq $TRUE ]
         then
-            setup_display_manager
-            sleep_clear ${SLEEP}
-
             setup_window_managers
             sleep_clear ${SLEEP} 
+
+            setup_display_manager
+            sleep_clear ${SLEEP}
 
       	  	enable_pacman_multilib "chroot"
        	 	sleep_clear ${SLEEP}
