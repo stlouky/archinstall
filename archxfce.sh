@@ -106,23 +106,23 @@ setup_display_manager()
 {
     title "Arch Linux Setup"
 
-    wprintf "[+] Setting up lightdm"
+    wprintf "[+] Setting up lxdm"
     printf "\n"
 
     printf "
-    > lightdm
+    > lxdm
     \n"
 
     sleep 2
 
     # install lxdm packages
-    chroot ${CHROOT} pacman -S lightdm lightdm-gtk-greeter --needed --force --noconfirm
+    chroot ${CHROOT} pacman -S lxdm --needed --force --noconfirm
 
     # config files
     # TODO
 
     # enable in systemd
-    chroot ${CHROOT} systemctl enable lighdm
+    chroot ${CHROOT} systemctl enable lxdm
 
     return $SUCCESS
 }
@@ -194,7 +194,7 @@ setup_extra_packages()
     network="networkmanager network-manager-applet dhclient dnsutils 
     openssh dialog iw wireless_tools wpa_supplicant"
 
-    xorg="xorg-server xorg-xinit xorg-server-utils"
+    xorg="xorg-server xorg-xinit"
 
     all="${arch} ${browser} ${editor} ${fonts} ${multimedia}"
     all="${all} ${kernel} ${misc} ${network} ${xorg}"

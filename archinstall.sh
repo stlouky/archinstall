@@ -155,8 +155,7 @@ WLAN_PASSPHRASE=""
 
 # make and format root partition
 make_root_partition()
-{
-    
+{    
     title "Hard Drive Setup"
     wprintf "[+] Creating ROOT partition"
     printf "\n\n"
