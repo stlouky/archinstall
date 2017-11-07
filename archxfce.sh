@@ -106,23 +106,23 @@ setup_display_manager()
 {
     title "Arch Linux Setup"
 
-    wprintf "[+] Setting up lxdm"
+    wprintf "[+] Setting up lightdm"
     printf "\n"
 
     printf "
-    > lxdm
+    > lightdm
     \n"
 
     sleep 2
 
     # install lxdm packages
-    chroot ${CHROOT} pacman -S lxdm --needed --force --noconfirm
+    chroot ${CHROOT} pacman -S lightdm lightdm-gtk-greeter --needed --force --noconfirm
 
     # config files
     # TODO
 
     # enable in systemd
-    chroot ${CHROOT} systemctl enable lxdm
+    chroot ${CHROOT} systemctl enable lighdm
 
     return $SUCCESS
 }
@@ -175,11 +175,11 @@ EOF
 # install extra (missing) packages
 setup_extra_packages()
 {
-    arch="archlinux-keyring pkgfile"    #arch-install-scripts 
+    arch="archlinux-keyring pkgfile"     
 
     browser="firefox elinks firefox-i18n-cs"
 
-    editor="vim libreoffice-fresh libreoffice-fresh-cs leafpad"
+    editor="vim libreoffice-fresh libreoffice-fresh-cs"
 
     multimedia="ffmpeg vlc qt4"
 
@@ -196,7 +196,7 @@ setup_extra_packages()
 
     xorg="xorg-server xorg-xinit xorg-server-utils"
 
-    all="${arch} ${browser} ${editor} ${filesystem} ${fonts} ${multimedia}"
+    all="${arch} ${browser} ${editor} ${fonts} ${multimedia}"
     all="${all} ${kernel} ${misc} ${network} ${xorg}"
 
     title "Base System Setup"
