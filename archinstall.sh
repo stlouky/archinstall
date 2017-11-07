@@ -153,10 +153,6 @@ WLAN_PASSPHRASE=""
 
 #####################################################################
 
-setup_xfce()
-{
-    
-}
 
 # make and format root partition
 make_root_partition()
@@ -411,8 +407,7 @@ setup_window_managers()
                 chroot ${CHROOT} pacman -S xfce4 exo garcon gtk-xfce-engine thunar \
                      tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
                      xfce4-session xfce4-settings xfce4-terminal xfconf xfdesktop xfwm4 \
-                     xfwm4-themes --needed --force --noconfirm
-                     setup_xfce
+                     xfwm4-themes --needed --force --noconfirm                     
                 break
                 ;;
         esac
