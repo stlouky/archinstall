@@ -153,6 +153,11 @@ WLAN_PASSPHRASE=""
 
 #####################################################################
 
+setup_xfce()
+{
+    
+}
+
 # make and format root partition
 make_root_partition()
 {
@@ -379,10 +384,10 @@ setup_window_managers()
     1. I3-wm
     2. Dwm
     3. xfce
-    8. All of the above
+    4. default xfce4
     \n"
         sleep 2
-        wprintf "[?] Choose an option [8]: "
+        wprintf "[?] Choose an option [4]: "
         read choice
         echo
         case $choice in
@@ -401,13 +406,13 @@ setup_window_managers()
                 	 xfce4-session xfce4-settings xfce4-terminal xfconf xfdesktop xfwm4 \
                 	 xfwm4-themes --needed --force --noconfirm
 			    break
-			    ;;
-           
+			    ;;           
             *)
-                chroot ${CHROOT} pacman -S i3 xfce4 dwm exo garcon gtk-xfce-engine thunar
+                chroot ${CHROOT} pacman -S xfce4 exo garcon gtk-xfce-engine thunar \
                      tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
                      xfce4-session xfce4-settings xfce4-terminal xfconf xfdesktop xfwm4 \
-                     xfwm4-themes dmenu --needed --force --noconfirm
+                     xfwm4-themes --needed --force --noconfirm
+                     setup_xfce
                 break
                 ;;
         esac
@@ -422,22 +427,22 @@ setup_display_manager()
 {
     title "Arch Linux Setup"
 
-    wprintf "[+] Setting up lightdm"
+    wprintf "[+] Setting up lxdm"
     printf "\n"
 
     printf "
-    > lightdm
+    > lxdm
     \n"
 
     sleep 2
 
     # install lxdm packages
-    chroot ${CHROOT} pacman -S lightdm --needed --force --noconfirm
+    chroot ${CHROOT} pacman -S lxdm --needed --force --noconfirm
 
     # config files
 
     # enable in systemd
-    chroot ${CHROOT} systemctl enable lightdm.service
+    chroot ${CHROOT} systemctl enable lxdm
 
     return $SUCCESS
 }
@@ -462,13 +467,14 @@ setup_arch()
 
     if [ $X_SETUP -eq $TRUE ]
         then
-            setup_window_managers
-            sleep_clear ${SLEEP} 
 
             setup_display_manager
             sleep_clear ${SLEEP}
 
-      	  	enable_pacman_multilib "chroot"
+            setup_window_managers
+            sleep_clear ${SLEEP} 
+
+            enable_pacman_multilib "chroot"
        	 	sleep_clear ${SLEEP}
 
         	enable_pacman_color "chroot"
