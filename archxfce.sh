@@ -91,15 +91,12 @@ setup_window_managers()
 {
     title "BlackArch Linux Setup"
 
-    wprintf "[+] Setting up window managers"
+    wprintf "[+] Installing xfce window managers"
     printf "\n"
 
-    chroot ${CHROOT} pacman -S xfce4 exo garcon gtk-xfce-engine thunar \
-                     tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
-                     xfce4-session xfce4-settings xfce4-terminal \
-                     xfconf xfdesktop xfwm4 xfwm4-themes --needed --force --noconfirm
+    chroot ${CHROOT} pacman -S xfce4 xfce4-goodies --needed --force --noconfirm
 
-    sleep 5
+    sleep 30
 
     return $SUCCESS
 }
@@ -197,7 +194,7 @@ setup_extra_packages()
     network="networkmanager network-manager-applet dhclient dnsutils 
     openssh dialog iw wireless_tools wpa_supplicant"
 
-    xorg="xorg-server xorg-xinit"
+    xorg="xorg-server xorg-xinit xorg-server-utils"
 
     all="${arch} ${browser} ${editor} ${filesystem} ${fonts} ${multimedia}"
     all="${all} ${kernel} ${misc} ${network} ${xorg}"
