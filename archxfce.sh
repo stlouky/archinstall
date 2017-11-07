@@ -536,6 +536,22 @@ get_partition_label()
     return $SUCCESS
 }
 
+# zero out partition if needed/chosen
+zero_part()
+{
+    if confirm "Hard Drive Setup" "[?] Start with an in-memory zeroed \
+partition table [y/n]: "
+    then
+        cfdisk -z "${HD_DEV}"
+        sync
+    else
+        cfdisk "${HD_DEV}"
+        sync
+    fi
+
+    return $SUCCESS
+}
+
 # ask user to create partitions using cfdisk
 ask_cfdisk()
 {
