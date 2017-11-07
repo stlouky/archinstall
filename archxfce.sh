@@ -96,7 +96,7 @@ setup_window_managers()
 
     chroot ${CHROOT} pacman -S xfce4 exo garcon gtk-xfce-engine thunar \
                      tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
-                     thunar-volume xfce4-session xfce4-settings xfce4-terminal \
+                     xfce4-session xfce4-settings xfce4-terminal \
                      xfconf xfdesktop xfwm4 xfwm4-themes --needed --force --noconfirm
 
     sleep 5
