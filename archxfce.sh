@@ -410,6 +410,62 @@ mount_filesystems()
     return $SUCCESS
 }
 
+# make and format root partition
+make_root_partition()
+{    
+    title "Hard Drive Setup"
+    wprintf "[+] Creating ROOT partition"
+    printf "\n\n"
+    if [ "${ROOT_FS_TYPE}" = "btrfs" ]
+        then
+            mkfs.${ROOT_FS_TYPE} -f ${ROOT_PART}
+        else
+            mkfs.${ROOT_FS_TYPE} -F ${ROOT_PART}
+    fi
+    sleep_clear ${SLEEP}
+
+    return $SUCCESS
+}
+
+# create swap partition
+make_swap_partition()
+{
+    title "Hard Drive Setup"
+
+    wprintf "[+] Creating SWAP partition"
+    printf "\n\n"
+    mkswap "${SWAP_PART}"
+
+    return $SUCCESS
+}
+
+make_home_partition()
+{
+    title "Hard Drive Setup"
+
+    wprintf "[+] Creating HOME partition"
+    printf "\n\n"
+    mkfs.${HOME_FS_TYPE} -F ${HOME_PART}
+}
+
+# make and format boot partition
+make_boot_partition()
+{
+    title "Hard Drive Setup"
+
+    wprintf "[+] Creating BOOT partition"
+    printf "\n\n"
+    if [ "${PART_LABEL}" = "gpt" ]
+    then
+        mkfs.fat -F32 ${BOOT_PART}
+    else
+        mkfs.${BOOT_FS_TYPE} -F ${BOOT_PART}
+    fi
+
+    return $SUCCESS
+}
+
+
 # make and format partitions
 make_partitions()
 {
