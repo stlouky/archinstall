@@ -480,6 +480,47 @@ print_partitions()
 
     return $SUCCESS
 }
+ perform sync
+sync_disk()
+{
+    title "Game Over"
+
+    wprintf "[+] Syncing disk"
+    printf "\n\n"
+
+    sync
+
+    return $SUCCESS
+}
+
+# unmount filesystems
+umount_filesystems()
+{
+    routine="${1}"
+
+    if [ "${routine}" = "harddrive" ]
+    then
+        title "Hard Drive Setup"
+    else
+        title "Game Over"
+    fi
+
+    wprintf "[+] Unmounting filesystems"
+    printf "\n\n"
+
+    umount -Rf ${CHROOT} > /dev/null 2>&1
+    umount -Rf "${BOOT_PART}" > /dev/null 2>&1
+    umount -Rf "${CHROOT}/proc" > /dev/null 2>&1
+    umount -Rf "${CHROOT}/sys" > /dev/null 2>&1
+    umount -Rf "${CHROOT}/dev" > /dev/null 2>&1
+    umount -Rf "${BOOT_PART}" > /dev/null 2>&1
+    umount -Rf "${ROOT_PART}" > /dev/null 2>&1
+    umount -Rf "/dev/mapper/${CRYPT_ROOT}" > /dev/null 2>&1
+    cryptsetup luksClose "${CRYPT_ROOT}" > /dev/null 2>&1
+    swapoff "${SWAP_PART}" > /dev/null 2>&1
+
+    return $SUCCESS
+}
 
 # get partitions
 get_partitions()
