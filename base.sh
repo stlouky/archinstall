@@ -750,7 +750,7 @@ main(){
 	clear
 	check_uid
 	check_env
-	#set_keymap
+	set_keymap
 	#clear
 
 	#network
