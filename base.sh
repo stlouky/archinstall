@@ -669,6 +669,13 @@ wprintf()
 
     return $SUCCESS
 }
+# sleep and clear
+sleep_clear(){
+    sleep $1
+    clear
+
+    return $SUCCESS
+}
 # confirm user inputted yYnN
 confirm()
 {
