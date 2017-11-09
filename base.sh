@@ -651,12 +651,12 @@ err(){
     return $SUCCESS
 }
 warn(){
-    printf "%s[!] WARNING: %s%s\n" "${tput setaf 3}" "${@}" "$(tput sgr0)"
+    printf "%s[!] WARNING: %s%s\n" "$(tput setaf 3)" "${@}" "$(tput sgr0)"
 
     return $SUCCESS
 }
 title(){
-    printf "$(tput setaf 6)>> %s${NC}\n\n\n" "${@}"
+    printf "$(tput setaf 6)>> %s$(tput sgr0)\n\n\n" "${@}"
 
     return $SUCCESS
 }
