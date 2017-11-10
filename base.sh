@@ -26,7 +26,29 @@ SUBNETMASK=""
 BROADCAST=""
 # nameserver address
 NAMESERVER=""
+#timer
+SLEEP=1
+ANSWER=""
+CHROOT="/mnt"
+# default ArchLinux repository URL
+AR_REPO_URL="https://archlinux.surlyjake.com/archlinux/\$repo/os/\$arch"
+AR_REPO_URL="${AR_REPO_URL} http://mirrors.evowise.com/archlinux/\$repo/os/\$arch"
+AR_REPO_URL="${AR_REPO_URL} http://mirror.rackspace.com/archlinux/\$repo/os/\$arch"
 
+setup_arch(){
+    title "Setup Desktop environment."
+    if confirm "Desktop Setup" "[?] do you want to set up window managers?[y/n]: ";then
+        curl -O  https://raw.githubusercontent.com/stlouky/archinstall/master/desktop.sh
+        chmod +x ${CHROOT}/desktop.sh
+        source ${CHROOT}/desktop.sh
+        arch_setup
+        rm -r ${CHROOT}/desktop.sh
+    else
+        wprintf "install is ending"
+    fi
+
+    return $SUCCESS
+}
 # perform sync
 sync_disk(){
     title "Game Over"
@@ -820,7 +842,7 @@ setup_base_system()
         sleep_clear ${SLEEP}
     fi
 
-    setup_extra_packages    ####
+    #setup_extra_packages    ####
     setup_bootloader
     sleep_clear ${SLEEP}
 
@@ -890,9 +912,17 @@ main(){
     setup_time
     sleep_clear ${SLEEP}
 
+    # setup arch linux
+    setup_arch
+    sleep_clear ${SLEEP}
 
-
-
+    # epilog     
+    umount_filesystems
+    sleep_clear ${SLEEP}
+    sync_disk
+    sleep_clear ${SLEEP}
+    
+    return $SUCCESS
 }
 
 main "${@}"
