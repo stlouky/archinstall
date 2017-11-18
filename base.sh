@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # arch-installer version
-VERSION="v0.5C"
+VERSION="v0.4b"
 
 # sleepclear
 SLEEP=1
@@ -568,56 +568,6 @@ EOF
         chroot ${CHROOT} grub-install --target=i386-pc "${HD_DEV}"
         chroot ${CHROOT} grub-mkconfig -o /boot/grub/grub.cfg
     fi
-
-    return $SUCCESS
-}
-
-# install extra (missing) packages
-setup_extra_packages()
-{
-    arch="archlinux-keyring pkgfile"    #arch-install-scripts 
-
-    browser="firefox midori elinks firefox-i18n-cs"
-
-    editor="vim"
-
-    multimedia="ffmpeg vlc qt4"
-
-    fonts="ttf-liberation ttf-dejavu ttf-freefont xorg-font-utils
-    xorg-fonts-alias xorg-fonts-misc xorg-mkfontscale xorg-mkfontdir"
-
-    kernel="linux-headers"
-
-    misc="alsa-utils bash-completion cmake feh flashplugin git
-    hdparm htop mesa p7zip rsync sudo unace unrar unzip zip"
-
-    network="networkmanager network-manager-applet dhclient dnsutils 
-    openssh dialog iw wireless_tools wpa_supplicant"
-
-    xorg="xorg-server xorg-xinit xterm"
-
-    all="${arch} ${browser} ${editor} ${filesystem} ${fonts} ${multimedia}"
-    all="${all} ${kernel} ${misc} ${network} ${xorg}"
-
-    title "Base System Setup"
-
-    wprintf "[+] Installing extra packages"
-    printf "\n"
-
-    printf "
-    > ArchLinux     : `echo ${arch} | wc -w` packages
-    > Browser       : `echo ${browser} | wc -w` packages
-    > Editor        : `echo ${editor} | wc -w` packages
-    > Filesystem    : `echo ${filesystem} | wc -w` packages
-    > Fonts         : `echo ${fonts} | wc -w` packages
-    > Misc          : `echo ${misc} | wc -w` packages
-    > Network       : `echo ${network} | wc -w` packages
-    > Xorg          : `echo ${xorg} | wc -w` packages
-    \n"
-
-    sleep 2
-    sleep_clear ${SLEEP}            
-    chroot ${CHROOT} pacman -S `echo ${all}` --needed --force --noconfirm    
 
     return $SUCCESS
 }
@@ -1367,8 +1317,7 @@ setup_base_system()
         setup_user "${NORMAL_USER}"
         sleep_clear ${SLEEP}
     fi
-
-    setup_extra_packages    ####
+    
     setup_bootloader
     sleep_clear ${SLEEP}
 
