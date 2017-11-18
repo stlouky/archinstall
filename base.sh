@@ -1,42 +1,460 @@
 #!/bin/bash
 
+# arch-installer version
+VERSION="v0.4b"
+
+# sleepclear
+SLEEP=1
+
+# true / false
+TRUE=0
+FALSE=1
+
 # return codes
 SUCCESS=0
 FAILURE=1
+
+# verbose mode - default: quiet
+VERBOSE="/dev/null"
+
+# chosen keymap
+KEYMAP=""
+
+# set keymap
+SET_KEYMAP="1"
+
+# list keymaps
+LIST_KEYMAP="2"
+
+# installation mode
+INSTALL_MODE=""
+
+# install modes
+INSTALL_REPO="1"
+INSTALL_LIVE_ISO="2"
+INSTALL_BLACKMAN="3"
+
+# colors
+BLUE="`tput setaf 6`"
+WHITE="`tput setaf 7`"
+WHITEB="`tput bold ; tput setaf 7`"
+GREEN="`tput setaf 2`"
+GREENB="`tput bold ; tput setaf 2`"
+RED="`tput setaf 1`"
+REDB="`tput bold; tput setaf 1`"
+YELLOW="`tput setaf 3`"
+YELLOWB="`tput bold ; tput setaf 3`"
+BLINK="`tput blink`"
+NC="`tput sgr0`"
+
+# chosen keymap
+KEYMAP=""
+
+# set keymap
+SET_KEYMAP="1"
+
+# list keymaps
+LIST_KEYMAP="2"
+
 # network interfaces
 NET_IFS=""
+
 # chosen network interface
 NET_IF=""
+
 # network configuration mode
 NET_CONF_MODE=""
+
 # network configuration modes
 NET_CONF_AUTO="1"
 NET_CONF_WLAN="2"
 NET_CONF_MANUAL="3"
 NET_CONF_SKIP="4"
+
 # hostname
 HOST_NAME=""
+
 # host ipv4 address
 HOST_IPV4=""
+
 # gateway ipv4 address
 GATEWAY=""
+
 # subnet mask
 SUBNETMASK=""
+
 # broadcast address
 BROADCAST=""
+
 # nameserver address
 NAMESERVER=""
-#timer
-SLEEP=1
-ANSWER=""
+
+# LUKS flag
+LUKS=""
+
+# avalable hard drive
+HD_DEVS=""
+
+# chosen hard drive device
+HD_DEV=""
+
+# partition label: gpt or msdos
+PART_LABEL=""
+
+# boot partition
+BOOT_PART=""
+
+# root partition
+ROOT_PART=""
+
+# home partition
+HOME_PART=""
+
+# swap partition
+SWAP_PART=""
+
+# boot fs type - default: ext4
+BOOT_FS_TYPE=""
+
+# root fs type - default: ext4
+ROOT_FS_TYPE=""
+
+# home fs type - default: ext4
+HOME_FS_TYPE=""
+
+# chroot directory / blackarch linux installation
 CHROOT="/mnt"
+
+# normal system user
+NORMAL_USER=""
+
 # default ArchLinux repository URL
 AR_REPO_URL="https://archlinux.surlyjake.com/archlinux/\$repo/os/\$arch"
 AR_REPO_URL="${AR_REPO_URL} http://mirrors.evowise.com/archlinux/\$repo/os/\$arch"
 AR_REPO_URL="${AR_REPO_URL} http://mirror.rackspace.com/archlinux/\$repo/os/\$arch"
 
+# X (display + window managers ) setup - default: false
+X_SETUP=$FALSE
+
+# VirtualBox setup - default: false
+VBOX_SETUP=$FALSE
+
+# VMware setup - default: false
+VMWARE_SETUP=$FALSE
+
+# BlackArch Linux tools setup - default: false
+BA_TOOLS_SETUP=$FALSE
+
+# wlan ssid
+WLAN_SSID=""
+
+# wlan passphrase
+WLAN_PASSPHRASE=""
+
+#####################################################################
+
+# make and format root partition
+make_root_partition()
+{    
+    title "Hard Drive Setup"
+    wprintf "[+] Creating ROOT partition"
+    printf "\n\n"
+    if [ "${ROOT_FS_TYPE}" = "btrfs" ]
+        then
+            mkfs.${ROOT_FS_TYPE} -f ${ROOT_PART}
+        else
+            mkfs.${ROOT_FS_TYPE} -F ${ROOT_PART}
+    fi
+    sleep_clear ${SLEEP}
+
+    return $SUCCESS
+}
+
+# create swap partition
+make_swap_partition()
+{
+    title "Hard Drive Setup"
+
+    wprintf "[+] Creating SWAP partition"
+    printf "\n\n"
+    mkswap "${SWAP_PART}"
+
+    return $SUCCESS
+}
+
+make_home_partition()
+{
+    title "Hard Drive Setup"
+
+    wprintf "[+] Creating HOME partition"
+    printf "\n\n"
+    mkfs.${HOME_FS_TYPE} -F ${HOME_PART}
+}
+
+# make and format boot partition
+make_boot_partition()
+{
+    title "Hard Drive Setup"
+
+    wprintf "[+] Creating BOOT partition"
+    printf "\n\n"
+    if [ "${PART_LABEL}" = "gpt" ]
+    then
+        mkfs.fat -F32 ${BOOT_PART}
+    else
+        mkfs.${BOOT_FS_TYPE} -F ${BOOT_PART}
+    fi
+
+    return $SUCCESS
+}
+
+# make and format partitions
+make_partitions()
+{
+    make_boot_partition
+    sleep_clear ${SLEEP}
+
+    make_root_partition
+    sleep_clear ${SLEEP}
+
+    make_home_partition
+    sleep_clear ${SLEEP}
+
+    if [ "${SWAP_PART}" != "none" ]
+    then
+        make_swap_partition
+        sleep_clear ${SLEEP}
+    fi
+
+    return $SUCCESS
+}
+
+# zero out partition if needed/chosen
+zero_part()
+{
+    if confirm "Hard Drive Setup" "[?] Start with an in-memory zeroed \
+partition table [y/n]: "
+    then
+        cfdisk -z "${HD_DEV}"
+        sync
+    else
+        cfdisk "${HD_DEV}"
+        sync
+    fi
+
+    return $SUCCESS
+}
+
+# ask user to create partitions using cfdisk
+ask_cfdisk()
+{
+    if confirm "Hard Drive Setup" "[?] Create partitions with cfdisk (root and \
+boot, optional swap) [y/n]: "
+    then
+        clear
+        zero_part
+    else
+        echo
+        err "Are you kidding me? No partitions no fun!"
+    fi
+
+    return $SUCCESS
+}
+
+# ask user for VirtualBox modules+utils setup
+ask_vbox_setup()
+{
+    if confirm "Arch Linux Setup" "[?] Setup VirtualBox modules [y/n]: "
+    then
+        VBOX_SETUP=$TRUE
+    fi
+
+    return $SUCCESS
+}
+
+# setup virtualbox utils
+setup_vbox_utils()
+{
+    title "Arch Linux Setup"
+
+    wprintf "[+] Setting up VirtualBox utils"
+    printf "\n\n"
+
+    chroot ${CHROOT} pacman -S virtualbox-guest-utils \
+        --force --needed --noconfirm
+
+    chroot ${CHROOT} systemctl enable vboxservice
+    chroot ${CHROOT} systemctl enable vboxadd
+    chroot ${CHROOT} systemctl enable vboxadd-service
+    chroot ${CHROOT} systemctl enable vboxadd-x11
+
+    printf "vboxguest\nvboxsf\nvboxvideo\n" \
+        > "${CHROOT}/etc/modules-load.d/vbox.conf"
+
+    return $SUCCESS
+}
+
+# add user to newly created groups
+update_user_groups()
+{
+    title "BlackArch Linux Setup"
+
+    wprintf "[+] Adding user '${NORMAL_USER}' to groups"
+    printf "\n\n"
+
+    # TODO: more to add here
+    chroot ${CHROOT} \
+        usermod -G ${NORMAL_USER},video,audio,vboxsf
+
+    return $SUCCESS
+}
+
+# enable color mode in pacman.conf
+enable_pacman_color()
+{
+    path="${1}"
+
+    if [ "${path}" = "chroot" ]
+    then
+        path="${CHROOT}"
+    else
+        path=""
+    fi
+
+    title "Pacman Setup"
+
+    wprintf "[+] Enabling color mode"
+    printf "\n\n"
+
+    sed -i 's/^#Color/Color/' ${path}/etc/pacman.conf
+
+    return $SUCCESS
+}
+
+# enable multilib in pacman.conf if x86_64 present
+enable_pacman_multilib()
+{
+    path="${1}"
+
+    if [ "${path}" = "chroot" ]
+    then
+        path="${CHROOT}"
+    else
+        path=""
+    fi
+
+    title "Pacman Setup"
+
+    if [ "`uname -m`" = "x86_64" ]
+    then
+        wprintf "[+] Enabling multilib support"
+        printf "\n\n"
+        if grep -q "#\[multilib\]" ${path}/etc/pacman.conf
+        then
+            # it exists but commented
+            sed -i '/\[multilib\]/{ s/^#//; n; s/^#//; }' ${path}/etc/pacman.conf
+        elif ! grep -q "\[multilib\]" ${path}/etc/pacman.conf
+        then
+            # it does not exist at all
+            printf "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" \
+                >> ${path}/etc/pacman.conf
+        fi
+    fi
+
+    return $SUCCESS
+}
+
+# setup window managers
+setup_window_managers()
+{
+    title "BlackArch Linux Setup"
+
+    wprintf "[+] Setting up window managers"
+    printf "\n"
+
+    while true
+    do
+        printf "
+    1. I3-wm
+    2. Dwm
+    3. xfce
+    4. default xfce
+    \n"
+        sleep 2
+        wprintf "[?] Choose an option [4]: "
+        read choice
+        echo
+        case $choice in
+            1)
+                chroot ${CHROOT} pacman -S i3 --needed --force --noconfirm
+                break
+                ;;
+               
+            2)
+                chroot ${CHROOT} pacman -S dwm --needed --force --noconfirm
+                break
+                ;;
+            3)
+                chroot ${CHROOT} pacman -S xfce4 exo garcon gtk-xfce-engine thunar \
+                     tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
+                     xfce4-session xfce4-settings xfce4-terminal xfconf xfdesktop xfwm4 \
+                     xfwm4-themes --needed --force --noconfirm
+                break
+                ;;           
+            *)
+                chroot ${CHROOT} pacman -S xfce4 exo garcon gtk-xfce-engine thunar \
+                     tumbler xfce4-appfinder xfce4-panel  xfce4-power-manager \
+                     xfce4-session xfce4-settings xfce4-terminal xfconf xfdesktop xfwm4 \
+                     xfwm4-themes --needed --force --noconfirm
+                break
+                ;;
+        esac
+    done
+    sleep 30
+
+    return $SUCCESS
+}
+
+# setup display manager
+setup_display_manager()
+{
+    title "Arch Linux Setup"
+
+    wprintf "[+] Setting up lxdm"
+    printf "\n"
+
+    printf "
+    > lxdm
+    \n"
+
+    sleep 2
+
+    # install lxdm packages
+    chroot ${CHROOT} pacman -S lxdm --needed --force --noconfirm
+
+    # config files
+
+    # enable in systemd
+    chroot ${CHROOT} systemctl enable lxdm
+
+    return $SUCCESS
+}
+
+# ask user for X (display + window manager) setup
+ask_x_setup()
+{
+    if confirm "Arch Linux Setup" "[?] Setup X11 + window managers [y/n]: "
+    then
+        X_SETUP=$TRUE
+        printf "\n"
+    fi
+
+    return $SUCCESS
+}
+
 # perform sync
-sync_disk(){
+sync_disk()
+{
     title "Game Over"
 
     wprintf "[+] Syncing disk"
@@ -46,8 +464,10 @@ sync_disk(){
 
     return $SUCCESS
 }
+
 # unmount filesystems
-umount_filesystems(){
+umount_filesystems()
+{
     routine="${1}"
 
     if [ "${routine}" = "harddrive" ]
@@ -73,8 +493,10 @@ umount_filesystems(){
 
     return $SUCCESS
 }
+
 # default time and timezone
-default_time(){
+default_time()
+{
     echo
     warn "Setting up default time and timezone: Europe/Prague"
     printf "\n\n"
@@ -82,8 +504,10 @@ default_time(){
 
     return $SUCCESS
 }
+
 # setup timezone
-setup_time(){
+setup_time()
+{
     if confirm "Default Time zone: Europe/Prague" "[?] Choose other timezone [y/n]: "
     then
         for t in `timedatectl list-timezones`
@@ -113,8 +537,10 @@ setup_time(){
     printf "\n\n"
     return $SUCCESS
 }
+
 # setup boot loader for UEFI/GPT or BIOS/MBR
-setup_bootloader(){
+setup_bootloader()
+{
     title "Base System Setup"
 
     if [ "${PART_LABEL}" = "gpt" ]
@@ -126,7 +552,7 @@ setup_bootloader(){
         uuid="`blkid ${ROOT_PART} | cut -d ' ' -f 2 | cut -d '"' -f 2`"
 
                 cat >> "${CHROOT}/boot/loader/entries/arch.conf" << EOF
-title       Arch Linux
+title       BlackArch Linux
 linux       /vmlinuz-linux
 initrd      /initramfs-linux.img
 options     root=UUID=${uuid} rw
@@ -145,8 +571,60 @@ EOF
 
     return $SUCCESS
 }
-#ask for normal user account to setup
-ask_user_account(){
+
+# install extra (missing) packages
+setup_extra_packages()
+{
+    arch="archlinux-keyring pkgfile"    #arch-install-scripts 
+
+    browser="firefox midori elinks firefox-i18n-cs"
+
+    editor="vim"
+
+    multimedia="ffmpeg vlc qt4"
+
+    fonts="ttf-liberation ttf-dejavu ttf-freefont xorg-font-utils
+    xorg-fonts-alias xorg-fonts-misc xorg-mkfontscale xorg-mkfontdir"
+
+    kernel="linux-headers"
+
+    misc="alsa-utils bash-completion cmake feh flashplugin git
+    hdparm htop mesa p7zip rsync sudo unace unrar unzip zip"
+
+    network="networkmanager network-manager-applet dhclient dnsutils 
+    openssh dialog iw wireless_tools wpa_supplicant"
+
+    xorg="xorg-server xorg-xinit xterm"
+
+    all="${arch} ${browser} ${editor} ${filesystem} ${fonts} ${multimedia}"
+    all="${all} ${kernel} ${misc} ${network} ${xorg}"
+
+    title "Base System Setup"
+
+    wprintf "[+] Installing extra packages"
+    printf "\n"
+
+    printf "
+    > ArchLinux     : `echo ${arch} | wc -w` packages
+    > Browser       : `echo ${browser} | wc -w` packages
+    > Editor        : `echo ${editor} | wc -w` packages
+    > Filesystem    : `echo ${filesystem} | wc -w` packages
+    > Fonts         : `echo ${fonts} | wc -w` packages
+    > Misc          : `echo ${misc} | wc -w` packages
+    > Network       : `echo ${network} | wc -w` packages
+    > Xorg          : `echo ${xorg} | wc -w` packages
+    \n"
+
+    sleep 2
+    sleep_clear ${SLEEP}            
+    chroot ${CHROOT} pacman -S `echo ${all}` --needed --force --noconfirm    
+
+    return $SUCCESS
+}
+
+# ask for normal user account to setup
+ask_user_account()
+{
     if confirm "Base System Setup" "[?] Setup a normal user account [y/n]: "
     then
         wprintf "[?] User name: "
@@ -155,8 +633,10 @@ ask_user_account(){
 
     return $SUCCESS
 }
+
 # setup user account, password and environment
-setup_user(){
+setup_user()
+{
     user="${1}"
 
     title "Base System Setup"
@@ -187,8 +667,10 @@ setup_user(){
 
     return $SUCCESS
 }
+
 # setup hostname
-setup_hostname(){
+setup_hostname()
+{
     title "Base System Setup"
 
     wprintf "[+] Setting up hostname"
@@ -198,8 +680,10 @@ setup_hostname(){
 
     return $SUCCESS
 }
+
 # setup initramfs
-setup_initramfs(){
+setup_initramfs()
+{
     title "Base System Setup"
 
     wprintf "[+] Setting up initramfs"
@@ -209,8 +693,10 @@ setup_initramfs(){
 
     return $SUCCESS
 }
+
 # setup locale and keymap
-setup_locale(){
+setup_locale()
+{
     title "Base System Setup"
 
     wprintf "[+] Setting up default locale (cs_CZ.UTF-8)"
@@ -224,8 +710,10 @@ setup_locale(){
 
     return $SUCCESS
 }
+
 # mount /proc, /sys and /dev
-setup_proc_sys_dev(){
+setup_proc_sys_dev()
+{
     title "Base System Setup"
 
     wprintf "[+] Setting up /proc, /sys and /dev"
@@ -241,8 +729,10 @@ setup_proc_sys_dev(){
 
     return $SUCCESS
 }
+
 # setup fstab
-setup_fstab(){
+setup_fstab()
+{
     title "Base System Setup"
 
     wprintf "[+] Setting up /etc/fstab"
@@ -257,8 +747,10 @@ setup_fstab(){
 
     return $SUCCESS
 }
+
 # install ArchLinux base and base-devel packages
-install_base_packages(){
+install_base_packages()
+{
     title "Base System setup"
 
     wprintf "[+] Installing ArchLinux base packages"
@@ -269,8 +761,10 @@ install_base_packages(){
 
     return $SUCCES
 }
+
 # setup /etc/resolv.conf
-setup_resolvconf(){
+setup_resolvconf()
+{
     title "Base System Setup"
 
     wprintf "[+] Setting up /etc/resolv.conf"
@@ -281,94 +775,17 @@ setup_resolvconf(){
 
     return $SUCCESS
 }
+
 # pass correct config
-pass_mirror_conf(){
+pass_mirror_conf()
+{
     cp -f /etc/pacman.d/mirrorlist ${CHROOT}/etc/pacman.d/mirrorlist \
         > ${VERBOSE} 2>&1
 }
-# make and format root partition
-make_root_partition(){    
-    title "Hard Drive Setup"
-    wprintf "[+] Creating ROOT partition"
-    printf "\n\n"
-    if [ "${ROOT_FS_TYPE}" = "btrfs" ]
-        then
-            mkfs.${ROOT_FS_TYPE} -f ${ROOT_PART}
-        else
-            mkfs.${ROOT_FS_TYPE} -F ${ROOT_PART}
-    fi
-    sleep_clear ${SLEEP}
 
-    return $SUCCESS
-}
-# create swap partition
-make_swap_partition(){
-    title "Hard Drive Setup"
-
-    wprintf "[+] Creating SWAP partition"
-    printf "\n\n"
-    mkswap "${SWAP_PART}"
-
-    return $SUCCESS
-}
-make_home_partition(){
-    title "Hard Drive Setup"
-
-    wprintf "[+] Creating HOME partition"
-    printf "\n\n"
-    mkfs.${HOME_FS_TYPE} -F ${HOME_PART}
-}
-
-# make and format boot partition
-make_boot_partition(){
-    title "Hard Drive Setup"
-
-    wprintf "[+] Creating BOOT partition"
-    printf "\n\n"
-    if [ "${PART_LABEL}" = "gpt" ]
-    then
-        mkfs.fat -F32 ${BOOT_PART}
-    else
-        mkfs.${BOOT_FS_TYPE} -F ${BOOT_PART}
-    fi
-
-    return $SUCCESS
-}
-# make and format partitions
-make_partitions(){
-    make_boot_partition
-    sleep_clear ${SLEEP}
-
-    make_root_partition
-    sleep_clear ${SLEEP}
-
-    make_home_partition
-    sleep_clear ${SLEEP}
-
-    if [ "${SWAP_PART}" != "none" ]
-    then
-        make_swap_partition
-        sleep_clear ${SLEEP}
-    fi
-
-    return $SUCCESS
-}
-# zero out partition if needed/chosen
-zero_part(){
-    if confirm "Hard Drive Setup" "[?] Start with an in-memory zeroed \
-partition table [y/n]: "
-    then
-        cfdisk -z "${HD_DEV}"
-        sync
-    else
-        cfdisk "${HD_DEV}"
-        sync
-    fi
-
-    return $SUCCESS
-}
 # mount filesystems
-mount_filesystems(){
+mount_filesystems()
+{
     title "Hard Drive Setup"
 
     wprintf "[+] Mounting filesystems"
@@ -390,8 +807,10 @@ mount_filesystems(){
 
     return $SUCCESS
 }
+
 # make and format partitions
-make_partitions(){
+make_partitions()
+{
     make_boot_partition
     sleep_clear ${SLEEP}
 
@@ -409,8 +828,10 @@ make_partitions(){
 
     return $SUCCESS
 }
+
 # ask user and get confirmation for formatting
-ask_formatting(){
+ask_formatting()
+{
     if confirm "Hard Drive Setup" "[?] Formatting partitions. Are you sure? \
 [y/n]: "
     then
@@ -422,8 +843,10 @@ ask_formatting(){
 
     return $SUCCESS
 }
+
 # print partitions and ask for confirmation
-print_partitions(){
+print_partitions()
+{
     i=""
 
     while true
@@ -455,8 +878,10 @@ print_partitions(){
 
     return $SUCCESS
 }
+
 # get partitions
-get_partitions(){
+get_partitions()
+{
     partitions=`ls ${HD_DEV}* | grep -v "${HD_DEV}\>"`
 
     while [ \
@@ -500,14 +925,18 @@ get_partitions(){
 
     return $SUCCESS
 }
+
 # get partition label
-get_partition_label(){
+get_partition_label()
+{
     PART_LABEL="`parted -m ${HD_DEV} print | grep ${HD_DEV} | cut -d ':' -f 6`"
 
     return $SUCCESS
 }
+
 # ask user to create partitions using cfdisk
-ask_cfdisk(){
+ask_cfdisk()
+{
     if confirm "Hard Drive Setup" "[?] Create partitions with cfdisk (root \
             boot, home, optional swap) [y/n]: "
     then
@@ -520,8 +949,10 @@ ask_cfdisk(){
 
     return $SUCCESS
 }
+
 # ask user for device to format and setup
-ask_hd_dev(){
+ask_hd_dev()
+{
     while true
     do
         title "Hard Drive Setup"
@@ -547,6 +978,7 @@ ask_hd_dev(){
 
     return $SUCCESS
 }
+
 # get available hard disks
 get_hd_devs()
 {
@@ -554,8 +986,10 @@ get_hd_devs()
 
     return $SUCCESS
 }
+
 # enable multilib in pacman.conf if x86_64 present
-enable_pacman_multilib(){
+enable_pacman_multilib()
+{
     path="${1}"
 
     if [ "${path}" = "chroot" ]
@@ -585,8 +1019,10 @@ enable_pacman_multilib(){
 
     return $SUCCESS
 }
+
 # update pacman.conf and database
-update_pacman(){
+update_pacman()
+{
     enable_pacman_multilib
     sleep_clear ${SLEEP}
 
@@ -598,8 +1034,10 @@ update_pacman(){
 
     return $SUCCESS
 }
+
 # update pacman package database
-update_pkg_database(){
+update_pkg_database()
+{
     title "Pacman Setup"
 
     wprintf "[+] Updating pacman database"
@@ -609,8 +1047,10 @@ update_pkg_database(){
 
     return $SUCCESS
 }
+
 # ask for archlinux server
-ask_mirror_arch(){
+ask_mirror_arch()
+{
     declare mirrold="cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup"
     
     if confirm "ArchLinux Mirrorlist Setup" \
@@ -635,8 +1075,10 @@ ask_mirror_arch(){
         done
     fi
 }
+
 # check for internet connection
-check_inet_conn(){
+check_inet_conn()
+{
     if ! wget -q --tries=3 --timeout=10 --spider http://github.com > /dev/null 2>&1
     then
         err "No Internet connection! Check your network (settings)."
@@ -644,8 +1086,10 @@ check_inet_conn(){
 
     return $SUCCESS
 }
+
 # auto (dhcp) network interface configuration
-net_conf_auto(){
+net_conf_auto()
+{
     opts="-h noleak -i noleak -v ,noleak -I noleak"
 
     title "Network Setup"
@@ -656,8 +1100,10 @@ net_conf_auto(){
 
     return $SUCCESS
 }
+
 # ask for networking configuration mode
-ask_net_conf_mode(){
+ask_net_conf_mode()
+{
     while [ \
         "${NET_CONF_MODE}" != "${NET_CONF_AUTO}" -a \
         "${NET_CONF_MODE}" != "${NET_CONF_WLAN}" -a \
@@ -677,9 +1123,10 @@ ask_net_conf_mode(){
     done
     return $SUCCESS
 }
-# ask user for network interface
-ask_net_if(){
 
+# ask user for network interface
+ask_net_if()
+{
     while true
     do
         title "Network Setup"
@@ -702,69 +1149,153 @@ ask_net_if(){
     return $SUCCESS
 }
 
-get_net_ifs(){
-	NET_IFS="$(ls /sys/class/net)"
-	return $SUCCESS
-}
-ask_hostname(){
+# get available network interfaces
+get_net_ifs()
+{
+    NET_IFS="`ls /sys/class/net`"
 
-	while [ -z "${HOST_NAME}" ]; do
-		title "Network Setup"
-		wprintf "[?] Set your hostname: "
-
-		read HOST_NAME
-	done
-}
-set_keymap(){
-	localectl set-keymap --no-convert "cs_CZ.UTF-8"
-    loadkeys cz-qwertz
+    return $SUCCESS
 }
 
-
-check_uid(){	
-	if [ $(id -u) -ne 0 ];then
-		err "You must be root to run the Arch installer!"
-	fi
+# ask user for hostname
+ask_hostname()
+{
+    while [ -z "${HOST_NAME}" ]
+    do
+        title "Network Setup"
+        wprintf "[?] Set your hostname: "
+        read HOST_NAME
+        clear
+    done
+    return $SUCCESS
 }
 
-check_env(){
-    if [ -f "/var/lib/pacman/db.lck" ];then
+# set keymap to use
+set_keymap()
+{
+    title "Keymap Setup"
+    wprintf "[?] Set keymap [cz]: "
+    read KEYMAP
+
+    # default keymap
+    if [ -z "${KEYMAP}" ]
+    then
+        KEYMAP="cz-qwertz"
+    fi
+
+    localectl set-keymap --no-convert "cs_CZ.UTF-8"
+    loadkeys "${KEYMAP}"
+
+    return $SUCCESS
+}
+
+ask_keymap()
+{
+    while [ \
+        "${keymap_opt}" != "${SET_KEYMAP}" -a \
+        "${keymap_opt}" != "${LIST_KEYMAP}" ]
+    do
+        title "Keymap Setup"
+        wprintf "[+] Available keymap options:"
+        printf "\n
+    1. Set a keymap
+    2. List available keymaps\n\n"
+        wprintf "[?] Make a choice: "
+        read keymap_opt
+
+        if [ "${keymap_opt}" = "${SET_KEYMAP}" ]
+        then
+            break
+        fi
+        if [ "${keymap_opt}" = "${LIST_KEYMAP}" ]
+        then
+            localectl list-keymaps
+            echo
+        fi
+        clear
+    done
+    clear
+    return $SUCCESS
+}
+
+#check user id
+check_uid()
+{
+    if [ `id -u` -ne 0 ]
+    then
+        err "You must be root to run the Arch installer!"
+    fi
+
+    return $SUCCESS
+}
+
+# check for environment issues
+check_env()
+{
+    if [ -f "/var/lib/pacman/db.lck" ]
+    then
         err "pacman locked - Please remove /var/lib/pacman/db.lck"
     fi
 }
 
-err(){
-    printf "%s[-] ERROR: %s%s\n" "$(tput bold; tput setaf 1)" "${@}" "$(tput sgr0)"
-    exit $FAILURE
-
-    return $SUCCESS
-}
-warn(){
-    printf "%s[!] WARNING: %s%s\n" "$(tput setaf 3)" "${@}" "$(tput sgr0)"
-
-    return $SUCCESS
-}
-title(){
-    printf "$(tput setaf 6)>> %s$(tput sgr0)\n\n\n" "${@}"
-
-    return $SUCCESS
-}
+# print formatted output
 wprintf()
 {
     fmt="${1}"
 
     shift
-    printf "%s${fmt}%s" "$(tput setaf 7)" "${@}" "$(tput sgr0)"
+    printf "%s${fmt}%s" "${WHITE}" "${@}" "${NC}"
 
     return $SUCCESS
 }
+
+# print menu title
+title()
+{
+    banner
+    printf "${BLUE}>> %s${NC}\n\n\n" "${@}"
+
+    return "${SUCCESS}"
+}
+
+# leet banner (very important)
+banner()
+{
+    columns="$(tput cols)"
+    str="[ Arch-installer ${VERSION} ]"
+
+    printf "${REDB}%*s${NC}\n" "${COLUMNS:-$(tput cols)}" | tr ' ' '*'
+
+    echo "${str}" |
+    while IFS= read -r line
+    do
+        printf "%s%*s\n%s" "${WHITEB}" $(( (${#line} + columns) / 2)) \
+            "$line" "${NC}"
+    done
+
+    printf "${REDB}%*s${NC}\n\n\n" "${COLUMNS:-$(tput cols)}" | tr ' ' '*'
+
+    return $SUCCESS
+}
+
+# print error and exit
+err()
+{
+    printf "%s[-] ERROR: %s%s\n" "${RED}" "${@}" "${NC}"
+    exit $FAILURE
+
+    return $SUCCESS
+}
+
 # sleep and clear
-sleep_clear(){
+sleep_clear()
+{
     sleep $1
     clear
 
     return $SUCCESS
 }
+
 # confirm user inputted yYnN
 confirm()
 {
@@ -789,6 +1320,15 @@ confirm()
     done
     return $SUCCESS
 }
+
+# print warning
+warn()
+{
+    printf "%s[!] WARNING: %s%s\n" "${YELLOW}" "${@}" "${NC}"
+
+    return $SUCCESS
+}
+
 # perform system base setup/configurations
 setup_base_system()
 {
@@ -828,21 +1368,24 @@ setup_base_system()
         sleep_clear ${SLEEP}
     fi
 
-    #setup_extra_packages    ####
+    setup_extra_packages    ####
     setup_bootloader
     sleep_clear ${SLEEP}
 
     return $SUCCESS
 }
-main(){
 
-	clear
-	check_uid
-	check_env
-	set_keymap
-	#clear
+main()
+{
+    check_uid
+    check_env
+    
+    #keymap
+    ask_keymap
+    set_keymap
+    clear
 
-	#network
+    #network
     ask_hostname
     get_net_ifs
     ask_net_if
@@ -868,7 +1411,7 @@ main(){
     check_inet_conn
     sleep_clear ${SLEEP}
 
-      # pacman
+    # pacman
     ask_mirror_arch     
     sleep_clear ${SLEEP}
     update_pacman
@@ -878,8 +1421,7 @@ main(){
     ask_hd_dev
     umount_filesystems "harddrive"
     sleep_clear ${SLEEP}
-    #ask_cfdisk
-    zero_part
+    ask_cfdisk
     sleep_clear ${SLEEP}
     get_partition_label
     get_partitions
@@ -899,6 +1441,9 @@ main(){
     setup_time
     sleep_clear ${SLEEP}
 
+    # setup arch linux
+    sleep_clear ${SLEEP}
+
     # epilog     
     umount_filesystems
     sleep_clear ${SLEEP}
@@ -908,4 +1453,11 @@ main(){
     return $SUCCESS
 }
 
+# we start here
 main "${@}"
+
+# EOF
+# dhcpcd neběží po startu
+# konzole v us locale
+# display manager ?? GDM => test
+# locale nastaveno na us
