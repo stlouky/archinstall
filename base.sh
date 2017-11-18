@@ -892,7 +892,8 @@ main(){
     ask_hd_dev
     umount_filesystems "harddrive"
     sleep_clear ${SLEEP}
-    ask_cfdisk
+    #ask_cfdisk
+    zero_part
     sleep_clear ${SLEEP}
     get_partition_label
     get_partitions
