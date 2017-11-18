@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # arch-installer version
-VERSION="v0.4b"
+VERSION="v0.5C"
 
 # sleepclear
 SLEEP=1
